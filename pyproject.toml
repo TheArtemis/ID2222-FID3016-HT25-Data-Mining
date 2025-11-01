@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "id2222-fid3016-ht25-data-mining"
 version = "0.1.0"
@@ -5,8 +9,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "mmh3>=5.2.0",
     "pyspark>=4.0.1",
 ]
+
+[tool.setuptools]
+packages = ["miner"]
 
 [dependency-groups]
 dev = [

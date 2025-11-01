@@ -1,3 +1,46 @@
+import re
+from pyspark.sql import SparkSession
+import mmh3
+
+K_BIG = 9  # For big documents
+K_SMALL = 5  # For small documents such as emails and short texts
+
+
 class Shingling:
-    # TODO: to implement
-    pass
+    def __init__(self, spark: SparkSession, k: int = K_SMALL):
+        self.spark = spark
+        self.k = k
+
+    def shingle(self, document: str) -> list[str]:
+        document = self._preprocess_document(document)
+        shingles = [document[i : i + self.k] for i in range(len(document) - self.k + 1)]
+        return shingles
+
+    def hash_shingles(self, shingles: list[str], duplicates: bool = False) -> list[int]:
+        rdd = self.spark.sparkContext.parallelize(shingles)
+
+        hashed_shingles = rdd.map(Shingling.hash_shingle)
+        if duplicates:
+            return hashed_shingles.collect()
+        else:
+            return hashed_shingles.distinct().collect()
+
+    def _preprocess_document(self, document: str) -> str:
+        # Replace consecutive whitespaces with a single space
+        document = re.sub(r"\s+", " ", document)
+
+        # Normalize to lowercase
+        document = document.lower()
+
+        # Remove punctuation
+        document = re.sub(r"[^\w\s]", "", document)
+
+        return document
+
+    @staticmethod
+    def hash_shingle(shingle: str) -> int:
+        # We use mmh3 to hash the shingle and then we mask the result to 32 bits
+        # Set the seed for consistent hashing across runs
+        return mmh3.hash(shingle, seed=0) & 0xFFFFFFFF
+
+    # TODO Handle multiple documents
