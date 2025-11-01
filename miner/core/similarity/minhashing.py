@@ -30,6 +30,6 @@ class Minhashing:
 
         return hash_functions
 
-    def get_row_permutation(self, i: int) -> list[int]:
+    def get_signature(self, i: int) -> list[int]:
         # Return a list of indices sorted by the hash function hash_fn
         return sorted(range(self.n), key=lambda x: self.hash_functions[i](x))
