@@ -3,8 +3,22 @@ name = "id2222-fid3016-ht25-data-mining"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = []
 
 [dependency-groups]
-dev = []
+dev = [
+    "ruff>=0.14.3",
+]
+
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",    # Style
+    "F",    # Errors
+    "UP",   # Modern Syntax
+    #"SIM"  # Simplifications
+]
+ignore = ["E501"]   # Ignore the "Line too long"  

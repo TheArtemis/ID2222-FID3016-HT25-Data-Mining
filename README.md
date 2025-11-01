@@ -43,3 +43,24 @@ uv add --dev <package-name>
 ### Python Version
 
 This project requires Python 3.12 or higher. The specific version is pinned in `.python-version`.
+
+
+# About the Project
+
+## Modules configuration
+
+**Miner**: It's the main module and where all the common logic and classes will go.
+
+**Presentation**: It's the specific scripts or files / reports that will be used for presenting diring class.
+
+## Configuring the datasets
+You can move the datasets inside the data folder.
+
+## Format
+
+You can use ruff to format the project and apply autofixing:
+
+```bash
+ruff format .
+ruff check --fix .
+```
