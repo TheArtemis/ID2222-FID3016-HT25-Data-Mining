@@ -3,6 +3,8 @@ import re
 from pyspark.sql import SparkSession
 import mmh3
 
+from miner.settings import SEED
+
 
 class ShingleSize(Enum):
     BIG = 9  # For big documents
@@ -42,9 +44,9 @@ class Shingling:
         return document
 
     @staticmethod
-    def hash_shingle(shingle: str) -> int:
+    def hash_shingle(shingle: str, seed: int = SEED) -> int:
         # We use mmh3 to hash the shingle and then we mask the result to 32 bits
         # Set the seed for consistent hashing across runs
-        return mmh3.hash(shingle, seed=0) & 0xFFFFFFFF
+        return mmh3.hash(shingle, seed=seed) & 0xFFFFFFFF
 
     # TODO Handle multiple documents
