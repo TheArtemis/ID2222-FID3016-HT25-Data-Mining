@@ -15,11 +15,11 @@ from miner.settings import BIG_PRIME, SEED
 
 class Minhashing:
     def __init__(self, spark: SparkSession, n: int, seed: int = SEED):
+        self.logger = logging.getLogger(__name__)
         self.spark = spark
         self.n = n
         self.seed = seed
         self.hash_functions: list[Callable] = self.generate_hash_functions()
-        self.logger = logging.getLogger(__name__)
 
     def generate_hash_functions(self) -> list[Callable]:
         # Creates n hash functions of the form f(x) = (ax + b) % p

@@ -14,9 +14,9 @@ class ShingleSize(Enum):
 
 class Shingling:
     def __init__(self, spark: SparkSession, k: int = ShingleSize.SMALL.value):
+        self.logger = logging.getLogger(__name__)
         self.spark = spark
         self.k = k
-        self.logger = logging.getLogger(__name__)
 
     def shingle(self, document: str) -> list[str]:
         document = self._preprocess_document(document)
