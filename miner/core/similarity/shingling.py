@@ -1,13 +1,16 @@
+from enum import Enum
 import re
 from pyspark.sql import SparkSession
 import mmh3
 
-K_BIG = 9  # For big documents
-K_SMALL = 5  # For small documents such as emails and short texts
+
+class ShingleSize(Enum):
+    BIG = 9  # For big documents
+    SMALL = 5  # For small documents such as emails and short texts
 
 
 class Shingling:
-    def __init__(self, spark: SparkSession, k: int = K_SMALL):
+    def __init__(self, spark: SparkSession, k: int = ShingleSize.SMALL.value):
         self.spark = spark
         self.k = k
 
