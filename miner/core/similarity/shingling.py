@@ -1,9 +1,10 @@
 from enum import Enum
+import logging
 import re
 from pyspark.sql import SparkSession
 import mmh3
 
-from miner.settings import SEED
+from miner.settings import SEED, SHINGLE_PYSPARK_THRESHOLD
 
 
 class ShingleSize(Enum):
@@ -15,6 +16,7 @@ class Shingling:
     def __init__(self, spark: SparkSession, k: int = ShingleSize.SMALL.value):
         self.spark = spark
         self.k = k
+        self.logger = logging.getLogger(__name__)
 
     def shingle(self, document: str) -> list[str]:
         document = self._preprocess_document(document)
@@ -22,14 +24,22 @@ class Shingling:
         return shingles
 
     def hash_shingles(self, shingles: list[str], duplicates: bool = False) -> list[int]:
-        rdd = self.spark.sparkContext.parallelize(shingles)
+        result = []
+        if len(shingles) > SHINGLE_PYSPARK_THRESHOLD:
+            self.logger.info(f"Using pyspark to hash {len(shingles)} shingles")
+            result = self._hash_shingles_pyspark(shingles)
+        else:
+            result = [Shingling.hash_shingle(shingle) for shingle in shingles]
 
-        hashed_shingles = rdd.map(Shingling.hash_shingle)
-        result = hashed_shingles.collect()
         if duplicates:
             return result
         else:
             return list[int](dict.fromkeys(result))
+
+    def _hash_shingles_pyspark(self, shingles: list[str]) -> list[int]:
+        rdd = self.spark.sparkContext.parallelize(shingles)
+        hashed_shingles = rdd.map(Shingling.hash_shingle)
+        return hashed_shingles.collect()
 
     def _preprocess_document(self, document: str) -> str:
         # Replace consecutive whitespaces with a single space

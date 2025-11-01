@@ -6,6 +6,7 @@ of a given length n from a given set of integers
 """
 
 from collections.abc import Callable
+import logging
 import random
 from pyspark.sql import SparkSession
 
@@ -18,6 +19,7 @@ class Minhashing:
         self.n = n
         self.seed = seed
         self.hash_functions: list[Callable] = self.generate_hash_functions()
+        self.logger = logging.getLogger(__name__)
 
     def generate_hash_functions(self) -> list[Callable]:
         # Creates n hash functions of the form f(x) = (ax + b) % p
@@ -30,6 +32,20 @@ class Minhashing:
 
         return hash_functions
 
-    def get_signature(self, i: int) -> list[int]:
-        # Return a list of indices sorted by the hash function hash_fn
-        return sorted(range(self.n), key=lambda x: self.hash_functions[i](x))
+    def get_signature(self, shingles: list[int]) -> list[int]:
+        signature = []
+
+        if len(shingles) > 0:
+            self.logger.info(
+                f"Using pyspark to compute the signature for {len(shingles)} shingles"
+            )
+            rdd = self.spark.sparkContext.parallelize(shingles)
+            for hash_fn in self.hash_functions:
+                min_hash = rdd.map(hash_fn).min()
+                signature.append(min_hash)
+        else:
+            for hash_fn in self.hash_functions:
+                min_hash = min(shingles, key=hash_fn)
+                signature.append(min_hash)
+
+        return signature
