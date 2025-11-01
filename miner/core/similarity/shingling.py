@@ -20,10 +20,11 @@ class Shingling:
         rdd = self.spark.sparkContext.parallelize(shingles)
 
         hashed_shingles = rdd.map(Shingling.hash_shingle)
+        result = hashed_shingles.collect()
         if duplicates:
-            return hashed_shingles.collect()
+            return result
         else:
-            return hashed_shingles.distinct().collect()
+            return list[int](dict.fromkeys(result))
 
     def _preprocess_document(self, document: str) -> str:
         # Replace consecutive whitespaces with a single space
