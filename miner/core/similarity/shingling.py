@@ -34,7 +34,7 @@ class Shingling:
         if duplicates:
             return result
         else:
-            return list[int](dict.fromkeys(result))
+            return list(dict.fromkeys(result))
 
     def _hash_shingles_pyspark(self, shingles: list[str]) -> list[int]:
         rdd = self.spark.sparkContext.parallelize(shingles)
@@ -44,6 +44,18 @@ class Shingling:
     def _preprocess_document(self, document: str) -> str:
         # Replace consecutive whitespaces with a single space
         document = re.sub(r"\s+", " ", document)
+
+        # Normalize to lowercase
+        document = document.lower()
+
+        # Remove punctuation
+        document = re.sub(r"[^\w\s]", "", document)
+
+        return document
+
+    def _preprocess_document_no_spaces(self, document: str) -> str:
+        # Remove all whitespaces
+        document = re.sub(r"\s", "", document)
 
         # Normalize to lowercase
         document = document.lower()
