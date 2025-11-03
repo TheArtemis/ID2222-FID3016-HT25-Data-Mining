@@ -43,7 +43,8 @@ class Minhashing:
             for hash_fn in self.hash_functions:
                 min_hash = rdd.map(hash_fn).min()
                 signature.append(min_hash)
-        else:
+        else:              
+            # This part might easily be taken away since it is basically never used
             for hash_fn in self.hash_functions:
                 min_hash = min(shingles, key=hash_fn)
                 signature.append(min_hash)
