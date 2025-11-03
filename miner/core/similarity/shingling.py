@@ -41,21 +41,13 @@ class Shingling:
         hashed_shingles = rdd.map(Shingling.hash_shingle)
         return hashed_shingles.collect()
 
-    def _preprocess_document(self, document: str) -> str:
-        # Replace consecutive whitespaces with a single space
-        document = re.sub(r"\s+", " ", document)
-
-        # Normalize to lowercase
-        document = document.lower()
-
-        # Remove punctuation
-        document = re.sub(r"[^\w\s]", "", document)
-
-        return document
-
-    def _preprocess_document_no_spaces(self, document: str) -> str:
-        # Remove all whitespaces
-        document = re.sub(r"\s", "", document)
+    def _preprocess_document(self, document: str, keep_spaces: bool = True) -> str:
+        if keep_spaces:
+            # Replace consecutive whitespaces with a single space
+            document = re.sub(r"\s+", " ", document)
+        else:
+            # Remove all whitespaces
+            document = re.sub(r"\s", "", document)
 
         # Normalize to lowercase
         document = document.lower()
