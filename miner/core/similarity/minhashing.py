@@ -10,7 +10,7 @@ import logging
 import random
 from pyspark.sql import SparkSession
 
-from miner.settings import BIG_PRIME, SEED
+from miner.settings import BIG_PRIME, SEED, SHINGLE_PYSPARK_THRESHOLD
 
 
 class Minhashing:
@@ -35,7 +35,7 @@ class Minhashing:
     def get_signature(self, shingles: list[int]) -> list[int]:
         signature = []
 
-        if len(shingles) > 0:
+        if len(shingles) > SHINGLE_PYSPARK_THRESHOLD:
             self.logger.info(
                 f"Using pyspark to compute the signature for {len(shingles)} shingles"
             )
@@ -44,7 +44,6 @@ class Minhashing:
                 min_hash = rdd.map(hash_fn).min()
                 signature.append(min_hash)
         else:
-            # This part might easily be taken away since it is basically never used
             for hash_fn in self.hash_functions:
                 min_hash = min(shingles, key=hash_fn)
                 signature.append(min_hash)
