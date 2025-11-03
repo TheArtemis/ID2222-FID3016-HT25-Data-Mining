@@ -7,7 +7,7 @@ from miner.settings import BIG_PRIME, SEED, SHINGLE_PYSPARK_THRESHOLD
 
 
 class Minhashing:
-    def __init__(self, spark: SparkSession, n: int, seed: int = SEED):
+    def __init__(self, spark: SparkSession, n: int = 100, seed: int = SEED):
         self.logger = logging.getLogger(__name__)
         self.spark = spark
         self.n = n  # Signature length
