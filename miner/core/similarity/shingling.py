@@ -69,11 +69,11 @@ class Shingling:
         for doc in document:
             result.append(self.shingle(doc))
         return result
-    
-    def hash_multi(self, shingles = list[list[str]]) -> list[list[int]]:
+
+    def hash_multi(self, shingles=list[list[str]]) -> list[list[int]]:
         result: list[list[str]] = []
 
         for shingle in shingles:
             result.append(self.hash_shingles(shingle))
-        
+
         return result
