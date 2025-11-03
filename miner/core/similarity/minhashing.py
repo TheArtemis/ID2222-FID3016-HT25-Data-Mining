@@ -17,7 +17,7 @@ class Minhashing:
     def __init__(self, spark: SparkSession, n: int, seed: int = SEED):
         self.logger = logging.getLogger(__name__)
         self.spark = spark
-        self.n = n
+        self.n = n  # Signature length
         self.seed = seed
         self.hash_functions: list[Callable] = self.generate_hash_functions()
 
