@@ -51,6 +51,7 @@ class LSH:
         self.b = math.ceil(n / r)  # Number of bands
         self.r = r  # Number of rows in each band
 
+    # TODO: Improve with pyspark
     def get_candidate_pairs(self, signatures: list[list[int]]):
         buckets = self.create_buckets(signatures)
         candidate_pairs: set[(int, int)] = set()
