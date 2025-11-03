@@ -32,6 +32,7 @@ class Minhashing:
 
         return hash_functions
 
+    # TODO: On the book there is a way to speed up this, only computing the min hash for the first m shingles or something like this
     def get_signature(self, shingles: list[int]) -> list[int]:
         signature = []
 
