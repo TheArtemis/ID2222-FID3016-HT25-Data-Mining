@@ -1,10 +1,3 @@
-"""
-A class MinHashing that builds a minHash signature
-(in the form of a vector or a set)
-of a given length n from a given set of integers
-(a set of hashed shingles).
-"""
-
 from collections.abc import Callable
 import logging
 import random
