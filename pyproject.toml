@@ -11,6 +11,7 @@ requires-python = ">=3.13"
 dependencies = [
     "colorlog>=6.7.0",
     "mmh3>=5.2.0",
+    "pydantic>=2.12.3",
     "pyspark>=4.0.1",
 ]
 
