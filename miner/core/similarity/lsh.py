@@ -51,7 +51,6 @@ class LSH:
         self.b = math.ceil(n / r)  # Number of bands
         self.r = r  # Number of rows in each band
 
-    # TODO: Improve with pyspark
     def get_candidate_pairs(self, signatures: list[list[int]]):
         buckets = self.create_buckets(signatures)
         candidate_pairs: set[(int, int)] = set()
@@ -65,6 +64,39 @@ class LSH:
                             candidate_pairs.add((i, j))
         return candidate_pairs
 
+    def candidate_pairs_spark(self, signatures: list[list[int]]):
+        sc = self.spark.sparkContext
+
+        # Create buckets
+        buckets = self.create_buckets(signatures)
+
+        # Create a list to parallelize
+        docs = []
+        for bucket in buckets:
+            docs.extend(bucket.get_candidates())
+        rdd = sc.parallelize(docs)
+
+        # Generate all unique candidate pairs
+        def generate_pairs(doc_idxs):
+            pairs = []
+            if not doc_idxs or len(doc_idxs) < 2:
+                return pairs
+            for i in range(len(doc_idxs)):
+                for j in range(i + 1, len(doc_idxs)):
+                    pairs.append((doc_idxs[i], doc_idxs[j]))
+            return pairs
+
+        pairs_rdd = rdd.flatMap(generate_pairs)
+
+        # Eliminate duplicates
+        pairs_rdd = pairs_rdd.distinct()
+
+        # Collect
+        candidate_pairs = pairs_rdd.collect()
+
+        return candidate_pairs
+
+    # TODO: Improve with pyspark
     def create_buckets(self, signatures: list[list[int]]):
         buckets: list[Bucket] = []
         for band in self.get_bands(signatures):
@@ -76,6 +108,7 @@ class LSH:
 
         return buckets
 
+    # TODO: Improve with pyspark
     def get_bands(self, signatures: list[list[int]]):
         bands = []
         # Create bands by chunking all n rows into groups of size r

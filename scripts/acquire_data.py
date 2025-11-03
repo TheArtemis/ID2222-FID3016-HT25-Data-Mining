@@ -10,7 +10,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # MUST set this before importing kagglehub so it uses the project data dir
 os.environ["KAGGLEHUB_CACHE_DIR"] = str(DATA_DIR)
 
-import kagglehub
+import kagglehub  # noqa: E402
 
 # Download dataset (returns path to extracted files)
 dataset_id = "shubchat/1002-short-stories-from-project-guttenberg"
