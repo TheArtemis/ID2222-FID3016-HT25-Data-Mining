@@ -63,4 +63,17 @@ class Shingling:
         # Set the seed for consistent hashing across runs
         return mmh3.hash(shingle, seed=seed) & 0xFFFFFFFF
 
-    # TODO Handle multiple documents
+    # Shingles each document
+    def shingle_multi(self, document: list[str]) -> list[list[str]]:
+        result: list[list[str]] = []
+        for doc in document:
+            result.append(self.shingle(doc))
+        return result
+    
+    def hash_multi(self, shingles = list[list[str]]) -> list[list[int]]:
+        result: list[list[str]] = []
+
+        for shingle in shingles:
+            result.append(self.hash_shingles(shingle))
+        
+        return result

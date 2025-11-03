@@ -2,7 +2,7 @@ from pathlib import Path
 from pyspark.sql import SparkSession
 from miner.core.similarity.shingling import Shingling
 
-DATA_FOLDER_PATH = Path(__file__).parent.parent / "data"
+DATA_FOLDER_PATH = Path(__file__).parent.parent.parent / "data"
 
 spark = SparkSession.builder.appName("Test Shingling").getOrCreate()
 
