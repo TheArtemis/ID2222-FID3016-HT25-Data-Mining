@@ -2,7 +2,7 @@ from miner.core.itemsets.basket import Basket
 
 
 class ItemsetAnalyzer:
-    def __init__(self, baskets: list[Basket], s: float = 0.5, it: float = 0.0):
+    def __init__(self, baskets: list[Basket], s: float = 0.5, it: float = 0.5):
         self.baskets = baskets
         self.s = s  # Support threshold
         self.it = it  # Interest threshold
