@@ -1,5 +1,5 @@
 from miner.core.itemsets.basket import Basket
-from miner.core.itemsets.utils import support
+from miner.core.itemsets.itemset_analyzer import ItemsetAnalyzer
 
 
-__all__ = ["Basket", "support"]
+__all__ = ["Basket", "ItemsetAnalyzer"]
