@@ -43,9 +43,31 @@ def test_is_frequent():
     logger.info(f"Is frequent {items[4]}: {analyzer.is_frequent(items[4])}")
 
 
+def test_confidence():
+    analyzer = ItemsetAnalyzer(baskets)
+    logger.info(f"Confidence of {items[0]}: {analyzer.confidence(items[0], 3)}")
+    logger.info(f"Confidence of {items[1]}: {analyzer.confidence(items[1], 4)}")
+    logger.info(f"Confidence of {items[2]}: {analyzer.confidence(items[2], 3)}")
+    logger.info(f"Confidence of {items[3]}: {analyzer.confidence(items[3], 4)}")
+    logger.info(f"Confidence of {items[4]}: {analyzer.confidence(items[4], 3)}")
+
+
+def test_interest():
+    analyzer = ItemsetAnalyzer(baskets)
+
+    logger.info(f"Interest of {items[0]}: {analyzer.interest(items[0], 3)}")
+    logger.info(f"Interest of {items[1]}: {analyzer.interest(items[1], 4)}")
+    logger.info(f"Interest of {items[2]}: {analyzer.interest(items[2], 3)}")
+    logger.info(f"Interest of {items[3]}: {analyzer.interest(items[3], 4)}")
+    logger.info(f"Interest of {items[4]}: {analyzer.interest(items[4], 3)}")
+
+
 if __name__ == "__main__":
     test_support()
     logger.info("--------------------------------")
     test_is_frequent()
     logger.info("--------------------------------")
-
+    test_confidence()
+    logger.info("--------------------------------")
+    test_interest()
+    logger.info("--------------------------------")
