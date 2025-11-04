@@ -3,7 +3,7 @@ import math
 from pyspark.sql import SparkSession
 from pydantic import BaseModel
 import mmh3
-from collections.abc import Iterable
+from typing import Iterable, List, Tuple
 
 
 class Band(BaseModel):
@@ -62,6 +62,25 @@ class LSH:
                 if i < j:
                     pairs.append((i, j))
         return pairs
+    
+    @staticmethod
+    def _col_to_band_entries(col_item: Tuple[int, List[int]], b: int, r: int, n: int, mmh3_hash) -> List[Tuple[int, Tuple[int, int]]]:
+        col_idx, sig = col_item
+        entries = []
+        for band_idx in range(b):
+            start = band_idx * r
+            end = min(start + r, n)
+            band_values = sig[start:end]
+            hashed = mmh3_hash(",".join(map(str, band_values)))
+            entries.append((band_idx, (hashed,col_idx)))
+        return entries
+    
+    @staticmethod
+    def _assemble_band_rows(iterable: Iterable[Tuple[int, List[int]]]) -> List[List[int]]:
+        rows_map: dict[int, List[int]] = {}
+        for row_within, row_values in iterable:
+            rows_map[int(row_within)] = row_values
+        return [rows_map[i] for i in sorted(rows_map.keys())]
 
     def get_candidate_pairs(self, signatures: list[list[int]]) -> set[(int, int)]:
         buckets = self.create_buckets(signatures)
@@ -111,23 +130,11 @@ class LSH:
         r = int(self.r)
         n = int(self.n)
         mmh3_hash = mmh3.hash
-        sc = self.spark.sparkContext
 
         cols = list(enumerate(signatures))
-        rdd = sc.parallelize(cols)
+        rdd = self.spark.sparkContext.parallelize(cols)
 
-        def col_to_band_entries(col_item):
-            col_idx, sig = col_item
-            entries = []
-            for band_idx in range(b):
-                start = band_idx * r
-                end = min(start + r, n)
-                band_values = sig[start:end]
-                hashed = mmh3_hash(",".join(map(str, band_values)))
-                entries.append((band_idx, (hashed, col_idx)))
-            return entries
-
-        pairs = rdd.flatMap(col_to_band_entries)  # (band_idx, (hashed, col_idx))
+        pairs = rdd.flatMap(lambda item: LSH._col_to_band_entries(item, b, r, n, mmh3_hash))  # (band_idx, (hashed, col_idx))
 
         def build_hash_dict(values: Iterable[tuple]):
             d: dict[int, list[int]] = {}
@@ -159,31 +166,25 @@ class LSH:
         return bands
 
     def get_bands_spark(self, signatures: list[list[int]]):
-        num_cols = len(signatures)
-        b = int(self.b)
-        r = int(self.r)
-        n = int(self.n)
-        sc = self.spark.sparkContext
 
-        def row_to_band_tuple(row_idx: int):
+        b = int(self.b) 
+        r = int(self.r) 
+        n = int(self.n)
+
+        # Broadcast the signatures to avoid copying for each task
+        signatures_b = self.spark.sparkContext.broadcast(signatures)
+
+        def row_to_band_tuple_local(row_idx: int):
             band_idx = row_idx // r
             row_within = row_idx % r
-            row_values = [signatures[col_idx][row_idx] for col_idx in range(num_cols)]
+            sigs = signatures_b.value
+            row_values = [sigs[col_idx][row_idx] for col_idx in range(len(signatures))]
             return (band_idx, (row_within, row_values))
 
-        rows_rdd = sc.parallelize(range(n)).map(row_to_band_tuple)
-
-        def assemble_band_rows(iterable: Iterable[tuple]):
-            rows_map: dict[int, list[int]] = {}
-            for row_within, row_values in iterable:
-                rows_map[int(row_within)] = row_values
-            return [rows_map[i] for i in sorted(rows_map.keys())]
-
-        bands_rdd = rows_rdd.groupByKey().mapValues(assemble_band_rows)
+        rows_rdd = self.spark.sparkContext.parallelize(range(n)).map(row_to_band_tuple_local)
+        bands_rdd = rows_rdd.groupByKey().mapValues(LSH._assemble_band_rows)
         band_dict = bands_rdd.collectAsMap()
 
-        bands: list[Band] = []
-        for band_idx in range(b):
-            rows = band_dict.get(band_idx, [])
-            bands.append(Band(rows=rows))
+        bands = [Band(rows=band_dict.get(bi, [])) for bi in range(b)]
+        signatures_b.unpersist()
         return bands
