@@ -3,7 +3,7 @@ import math
 from pyspark.sql import SparkSession
 from pydantic import BaseModel
 import mmh3
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
 
 
 class Band(BaseModel):
@@ -62,9 +62,11 @@ class LSH:
                 if i < j:
                     pairs.append((i, j))
         return pairs
-    
+
     @staticmethod
-    def _col_to_band_entries(col_item: Tuple[int, List[int]], b: int, r: int, n: int, mmh3_hash) -> List[Tuple[int, Tuple[int, int]]]:
+    def _col_to_band_entries(
+        col_item: tuple[int, list[int]], b: int, r: int, n: int, mmh3_hash
+    ) -> list[tuple[int, tuple[int, int]]]:
         col_idx, sig = col_item
         entries = []
         for band_idx in range(b):
@@ -72,12 +74,14 @@ class LSH:
             end = min(start + r, n)
             band_values = sig[start:end]
             hashed = mmh3_hash(",".join(map(str, band_values)))
-            entries.append((band_idx, (hashed,col_idx)))
+            entries.append((band_idx, (hashed, col_idx)))
         return entries
-    
+
     @staticmethod
-    def _assemble_band_rows(iterable: Iterable[Tuple[int, List[int]]]) -> List[List[int]]:
-        rows_map: dict[int, List[int]] = {}
+    def _assemble_band_rows(
+        iterable: Iterable[tuple[int, list[int]]],
+    ) -> list[list[int]]:
+        rows_map: dict[int, list[int]] = {}
         for row_within, row_values in iterable:
             rows_map[int(row_within)] = row_values
         return [rows_map[i] for i in sorted(rows_map.keys())]
@@ -134,7 +138,9 @@ class LSH:
         cols = list(enumerate(signatures))
         rdd = self.spark.sparkContext.parallelize(cols)
 
-        pairs = rdd.flatMap(lambda item: LSH._col_to_band_entries(item, b, r, n, mmh3_hash))  # (band_idx, (hashed, col_idx))
+        pairs = rdd.flatMap(
+            lambda item: LSH._col_to_band_entries(item, b, r, n, mmh3_hash)
+        )  # (band_idx, (hashed, col_idx))
 
         def build_hash_dict(values: Iterable[tuple]):
             d: dict[int, list[int]] = {}
@@ -166,9 +172,8 @@ class LSH:
         return bands
 
     def get_bands_spark(self, signatures: list[list[int]]):
-
-        b = int(self.b) 
-        r = int(self.r) 
+        b = int(self.b)
+        r = int(self.r)
         n = int(self.n)
 
         # Broadcast the signatures to avoid copying for each task
@@ -181,7 +186,9 @@ class LSH:
             row_values = [sigs[col_idx][row_idx] for col_idx in range(len(signatures))]
             return (band_idx, (row_within, row_values))
 
-        rows_rdd = self.spark.sparkContext.parallelize(range(n)).map(row_to_band_tuple_local)
+        rows_rdd = self.spark.sparkContext.parallelize(range(n)).map(
+            row_to_band_tuple_local
+        )
         bands_rdd = rows_rdd.groupByKey().mapValues(LSH._assemble_band_rows)
         band_dict = bands_rdd.collectAsMap()
 

@@ -37,7 +37,6 @@ class Apriori:
                 self.frequent_items_table[k].itemsets[itemset] = count
 
     def process(self):
-        k = 1
         singletons = self.first_pass()
         self.generate_candidates(1, singletons)
         # TODO continue here
