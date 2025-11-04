@@ -3,7 +3,7 @@ import os
 import shutil
 
 # Project paths
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = ROOT_DIR / "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
