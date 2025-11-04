@@ -46,6 +46,30 @@ def test_lsh(r: int = 10):
         logger.info(f"Similarity rate = {result:.2f}")
 
 
+def test_lsh_spark(r: int = 10):
+    emails = [p.read_text() for p in (EMAIL_1, EMAIL_2, EMAIL_3)]
+
+    shingling = Shingling(spark)
+
+    shingles = [shingling.shingle(s) for s in emails]
+
+    hash = [shingling.hash_shingles(s) for s in shingles]
+
+    minhashing = Minhashing(spark, n=100)
+    signatures = [minhashing.get_signature(h) for h in hash]
+
+    lsh = LSH(spark, n=100, r=r)
+    candidate_pairs = lsh.get_candidate_pairs_spark(signatures)
+    logger.info(f"Candidate pairs for r={r}: {candidate_pairs}")
+
+    compare_signatures = CompareSignatures(spark)
+    for x, y in candidate_pairs:
+        result = compare_signatures.compare_signatures_spark(
+            signatures[x], signatures[y]
+        )
+        logger.info(f"Similarity rate = {result:.2f}")
+
+
 def test_lsh_with_copy():
     e1 = open(EMAIL_1).read()
     e1_copy = open(EMAIL_1_COPY).read()
@@ -75,6 +99,37 @@ def test_lsh_with_copy():
     logger.info(f"Candidate pairs: {candidate_pairs}")
 
 
+def test_lsh_with_copy_spark():
+    e1 = open(EMAIL_1).read()
+    e1_copy = open(EMAIL_1_COPY).read()
+
+    shingling = Shingling(spark)
+    shingles1 = shingling.shingle(e1)
+    shingles1_copy = shingling.shingle(e1_copy)
+
+    h1 = shingling.hash_shingles(shingles1)
+    h1_copy = shingling.hash_shingles(shingles1_copy)
+
+    minhashing = Minhashing(spark, n=100)
+    signature1 = minhashing.get_signature(h1)
+    signature1_copy = minhashing.get_signature(h1_copy)
+
+    lsh = LSH(spark, n=100, r=10)
+    bands = lsh.get_bands_spark(signatures=[signature1, signature1_copy])
+    buckets = lsh.create_buckets_spark(signatures=[signature1, signature1_copy])
+    logger.info(f"Bands: {bands}")
+    logger.info(f"Buckets: {buckets}")
+    candidate_pairs_spark = lsh.get_candidate_pairs_spark(
+        signatures=[signature1, signature1_copy]
+    )
+
+    candidate_pairs = lsh.get_candidate_pairs_spark(
+        signatures=[signature1, signature1_copy]
+    )
+    assert candidate_pairs == candidate_pairs_spark
+    logger.info(f"Candidate pairs: {candidate_pairs}")
+
+
 def test_lsh_diff_r():
     for r in range(1, 30, 2):
         test_lsh(r)
@@ -82,3 +137,4 @@ def test_lsh_diff_r():
 
 if __name__ == "__main__":
     test_lsh_with_copy()
+    test_lsh_with_copy_spark()
