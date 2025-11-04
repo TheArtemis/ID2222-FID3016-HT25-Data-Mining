@@ -51,22 +51,29 @@ class LSH:
         self.b = math.ceil(n / r)  # Number of bands
         self.r = r  # Number of rows in each band
 
-    def get_candidate_pairs(self, signatures: list[list[int]]):
+    @staticmethod
+    def _generate_pairs(doc_idxs: list[int]) -> list[(int, int)]:
+        pairs = []
+        if not doc_idxs or len(doc_idxs) < 2:
+            return pairs
+        for i in doc_idxs:
+            for j in doc_idxs:
+                if i < j:
+                    pairs.append((i, j))
+        return pairs
+
+    def get_candidate_pairs(self, signatures: list[list[int]]) -> set[(int, int)]:
         buckets = self.create_buckets(signatures)
         candidate_pairs: set[(int, int)] = set()
 
         for bucket in buckets:
             docs = bucket.get_candidates()
             for doc_idxs in docs:
-                for i in doc_idxs:
-                    for j in doc_idxs:
-                        if i < j:
-                            candidate_pairs.add((i, j))
+                pairs = LSH._generate_pairs(doc_idxs)
+                candidate_pairs.update(pairs)
         return candidate_pairs
 
-    def candidate_pairs_spark(self, signatures: list[list[int]]):
-        sc = self.spark.sparkContext
-
+    def get_candidate_pairs_spark(self, signatures: list[list[int]]) -> set[(int, int)]:
         # Create buckets
         buckets = self.create_buckets(signatures)
 
@@ -74,25 +81,16 @@ class LSH:
         docs = []
         for bucket in buckets:
             docs.extend(bucket.get_candidates())
-        rdd = sc.parallelize(docs)
+        rdd = self.spark.sparkContext.parallelize(docs)
 
         # Generate all unique candidate pairs
-        def generate_pairs(doc_idxs):
-            pairs = []
-            if not doc_idxs or len(doc_idxs) < 2:
-                return pairs
-            for i in range(len(doc_idxs)):
-                for j in range(i + 1, len(doc_idxs)):
-                    pairs.append((doc_idxs[i], doc_idxs[j]))
-            return pairs
-
-        pairs_rdd = rdd.flatMap(generate_pairs)
+        pairs_rdd = rdd.flatMap(LSH._generate_pairs)
 
         # Eliminate duplicates
         pairs_rdd = pairs_rdd.distinct()
 
         # Collect
-        candidate_pairs = pairs_rdd.collect()
+        candidate_pairs: set[(int, int)] = set(pairs_rdd.collect())
 
         return candidate_pairs
 

@@ -18,6 +18,9 @@ EMAIL_1_COPY = EMAIL_FOLDER_PATH / "email1_copy.txt"
 
 spark = SparkSession.builder.appName("test_lsh").getOrCreate()
 
+# Reduce Spark's logging verbosity
+spark.sparkContext.setLogLevel("WARN")
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,10 +64,15 @@ def test_lsh_with_copy():
     lsh = LSH(spark, n=100, r=10)
     bands = lsh.get_bands(signatures=[signature1, signature1_copy])
     buckets = lsh.create_buckets(signatures=[signature1, signature1_copy])
-    logger.info(bands)
-    logger.info(buckets)
+    logger.info(f"Bands: {bands}")
+    logger.info(f"Buckets: {buckets}")
+    candidate_pairs_spark = lsh.get_candidate_pairs_spark(
+        signatures=[signature1, signature1_copy]
+    )
+
     candidate_pairs = lsh.get_candidate_pairs(signatures=[signature1, signature1_copy])
-    logger.info(candidate_pairs)
+    assert candidate_pairs == candidate_pairs_spark
+    logger.info(f"Candidate pairs: {candidate_pairs}")
 
 
 def test_lsh_diff_r():
@@ -73,4 +81,4 @@ def test_lsh_diff_r():
 
 
 if __name__ == "__main__":
-    test_lsh_diff_r()
+    test_lsh_with_copy()

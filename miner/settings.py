@@ -1,4 +1,5 @@
 import logging
+import os
 
 import colorlog
 
@@ -27,7 +28,10 @@ handler.setFormatter(
 logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
-logger.info("""\n
+
+# Only print ASCII art if not in a Spark worker process
+if os.environ.get("SPARK_ENV_LOADED") is None:
+    logger.info("""\n
             ░███     ░███ ░██                                       
      ░██    ░████   ░████                                      ░██  
     ░██     ░██░██ ░██░██ ░██░████████   ░███████  ░██░████     ░██ 
