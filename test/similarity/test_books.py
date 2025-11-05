@@ -5,8 +5,10 @@ import sys
 
 from pyspark.sql import SparkSession
 
+from miner.core.similarity.lsh import LSH
 from miner.core.similarity.minhashing import Minhashing
 from miner.core.similarity.shingling import Shingling
+from miner.core.similarity.compare_signatures import CompareSignatures
 
 spark = SparkSession.builder.appName("test_books").getOrCreate()
 
@@ -22,7 +24,7 @@ except OverflowError:
     csv.field_size_limit(10 * 1024 * 1024)
 
 
-def test_books():
+def test_books(rows_per_band: int = 4):
     root = Path(__file__).resolve().parent.parent.parent
     data_dir = root / "data"
     db_books_path = data_dir / "db_books.csv"
@@ -82,22 +84,18 @@ def test_books():
     minhashing = Minhashing(spark, n=100)
     signatures = [minhashing.get_signature(h) for h in hash_multi]
 
-    # Debugging purposes
-    print(f"{len(signatures)}")
+    lsh = LSH(spark, n=100, r=rows_per_band)
+    candidate_pairs = lsh.get_candidate_pairs_spark(signatures)
+    logger.info(f"Candidate pairs for r={rows_per_band}: {candidate_pairs}")
 
-    # Need to implement something for multi signatures (Guess)
-    # The commented part below is just for helping me while writing the test using a trace
+    print(f"{candidate_pairs}")
 
-    # sh = LSH(spark, n=100, r=r)
-    # candidate_pairs = lsh.get_candidate_pairs_spark(signatures)
-    # logger.info(f"Candidate pairs for r={r}: {candidate_pairs}")
-
-    # compare_signatures = CompareSignatures(spark)
-    # for x, y in candidate_pairs:
-    # result = compare_signatures.compare_signatures_spark(
-    #    signatures[x], signatures[y]
-    # )
-    # logger.info(f"Similarity rate = {result:.2f}")
+    compare_signatures = CompareSignatures(spark)
+    for x, y in candidate_pairs:
+        result = compare_signatures.compare_signatures_spark(
+            signatures[x], signatures[y]
+        )
+        logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
 
 if __name__ == "__main__":
