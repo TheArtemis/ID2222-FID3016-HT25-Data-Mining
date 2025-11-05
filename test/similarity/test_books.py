@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import time
 import csv
 import sys
 
@@ -74,6 +75,8 @@ def test_books(rows_per_band: int = 4):
 
     documents = [stories[bookno] for bookno in stories.keys()]
 
+    complete_time_start = time.time()
+
     shingling = Shingling(spark)
 
     shingles = shingling.shingle_multi(documents)
@@ -81,14 +84,33 @@ def test_books(rows_per_band: int = 4):
     # Need to maintain a "per document" logic
     hash_multi = shingling.hash_multi(shingles)
 
+    shingling_time = time.time()
+    logger.info(
+        f"Time elapsed for shingling: {shingling_time - complete_time_start:.3f} seconds"
+    )
+
+    minhashing_start_time = time.time()
+
     minhashing = Minhashing(spark, n=100)
     signatures = [minhashing.get_signature(h) for h in hash_multi]
+
+    minhashing_end_time = time.time()
+    logger.info(
+        f"Time elapsed for minhashing: {minhashing_end_time - minhashing_start_time:.3f} seconds"
+    )
+
+    lsh_start_time = time.time()
 
     lsh = LSH(spark, n=100, r=rows_per_band)
     candidate_pairs = lsh.get_candidate_pairs_spark(signatures)
     logger.info(f"Candidate pairs for r={rows_per_band}: {candidate_pairs}")
 
+    lsh_end_time = time.time()
+    logger.info(f"Time elapsed for LSH: {lsh_end_time - lsh_start_time:.3f} seconds")
+
     print(f"{candidate_pairs}")
+
+    compare_sign_start_time = time.time()
 
     compare_signatures = CompareSignatures(spark)
     for x, y in candidate_pairs:
@@ -96,6 +118,16 @@ def test_books(rows_per_band: int = 4):
             signatures[x], signatures[y]
         )
         logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
+
+    complete_time_end = time.time()
+    logger.info(
+        f"Time elapsed for Comparing signatures: {complete_time_end - compare_sign_start_time:.3f} seconds"
+    )
+
+    elapsed_total_time = complete_time_end - complete_time_start
+    logger.info(
+        f"Total time elapsed for the whole procedure: {elapsed_total_time:.3f} seconds"
+    )
 
 
 if __name__ == "__main__":
