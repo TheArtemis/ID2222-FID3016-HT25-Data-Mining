@@ -69,6 +69,7 @@ class Shingling:
         for doc in document:
             result.append(self.shingle(doc))
         return result
+    
 
     def hash_multi(self, shingles=list[list[str]]) -> list[list[int]]:
         result: list[list[str]] = []
@@ -76,4 +77,11 @@ class Shingling:
         for shingle in shingles:
             result.append(self.hash_shingles(shingle))
 
+        return result
+    
+    def hash_multi_spark(self, shingles=list[list[str]]) -> list[list[int]]:
+        result: list[list[str]] = []
+        for shingle in shingles:
+            result.append(self._hash_shingles_pyspark(shingle))
+        
         return result
