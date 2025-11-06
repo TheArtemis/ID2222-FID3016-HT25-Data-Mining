@@ -10,7 +10,7 @@ class Basket(BaseModel):
         return item in self.itemset
 
     @staticmethod
-    def from_file(file_path: Path) -> list[Basket]:
+    def load(file_path: Path) -> list[Basket]:
         # Check if file exists
         if not file_path.exists():
             raise FileNotFoundError(f"File {file_path} not found")

@@ -15,7 +15,7 @@ DATASET_PATH = (
 
 
 def test_basket():
-    baskets = Basket.from_file(DATASET_PATH)
+    baskets = Basket.load(DATASET_PATH)
     logger.info(f"Number of baskets: {len(baskets)}")
     logger.info(f"First basket: {baskets[0]}")
     logger.info(f"Last basket: {baskets[-1]}")
