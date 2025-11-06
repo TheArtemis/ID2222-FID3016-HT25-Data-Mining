@@ -129,6 +129,7 @@ def test_books(rows_per_band: int = 4):
         f"Total time elapsed for the whole procedure: {elapsed_total_time:.3f} seconds"
     )
 
+
 def test_books_no_spark(rows_per_band: int = 4):
     root = Path(__file__).resolve().parent.parent.parent
     data_dir = root / "data"
@@ -210,7 +211,9 @@ def test_books_no_spark(rows_per_band: int = 4):
     logger.info(f"Candidate pairs for r={rows_per_band}: {candidate_pairs}")
 
     lsh_end_time = time.time()
-    logger.info(f"Time elapsed for LSH (no spark): {lsh_end_time - lsh_start_time:.3f} seconds")
+    logger.info(
+        f"Time elapsed for LSH (no spark): {lsh_end_time - lsh_start_time:.3f} seconds"
+    )
 
     print(f"{candidate_pairs}")
 
@@ -218,9 +221,7 @@ def test_books_no_spark(rows_per_band: int = 4):
 
     compare_signatures = CompareSignatures(spark)
     for x, y in candidate_pairs:
-        result = compare_signatures.compare_signatures(
-            signatures[x], signatures[y]
-        )
+        result = compare_signatures.compare_signatures(signatures[x], signatures[y])
         logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
     complete_time_end = time.time()
