@@ -1,23 +1,40 @@
+import logging
 from pathlib import Path
 
 from miner.core.itemsets import Basket
 from miner.core.itemsets.apriori import Apriori
+from miner.core.itemsets.association_rules import AssociationRuleGenerator
 
 
 ROOT_DIR = Path(__file__).parent.parent.parent
 DATASET_PATH = ROOT_DIR / "data" / "sales_transactions" / "T10I4D100K.dat"
+logger = logging.getLogger(__name__)
+
+
+MIN_SUPPORT = 0.01
+MIN_INTEREST = 0.00
 
 
 def test_apriori():
     baskets = Basket.load(DATASET_PATH)
     assert len(baskets) > 0
-    print(f"Loaded {len(baskets)} baskets")
+    logger.info(f"Loaded {len(baskets)} baskets")
 
-    apriori = Apriori(baskets)
-    apriori.process()
+    apriori = Apriori(baskets, s=MIN_SUPPORT, it=MIN_INTEREST)
+    apriori.run()
 
-    print("Frequent items table:")
-    print(apriori.frequent_items_table)
+    logger.info("Frequent items table:")
+    frequent_table = apriori.frequent_items_table
+    logger.info(f"Total frequent itemsets: {len(frequent_table)}")
+
+    logger.info(
+        f"Itemsets by size: {[len(freq_collection.itemsets) for freq_collection in apriori.frequent_by_size]}"
+    )
+
+    # Show a few examples
+    logger.info("Frequent itemsets:")
+    for itemset, count in list(frequent_table.items()):
+        logger.info(f"  {itemset}: {count} occurrences")
 
 
 if __name__ == "__main__":

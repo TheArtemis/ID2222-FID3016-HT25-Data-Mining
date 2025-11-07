@@ -5,6 +5,12 @@ from miner.core.similarity import (
     LSH,
     CompareSignatures,
 )
+from miner.core.itemsets import (
+    Apriori,
+    AssociationRuleGenerator,
+    Basket,
+    ItemsetAnalyzer,
+)
 
 __all__ = [
     "CompareSets",
@@ -12,4 +18,8 @@ __all__ = [
     "Minhashing",
     "LSH",
     "CompareSignatures",
+    "Apriori",
+    "AssociationRuleGenerator",
+    "Basket",
+    "ItemsetAnalyzer",
 ]
