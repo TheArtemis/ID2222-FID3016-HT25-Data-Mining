@@ -341,6 +341,6 @@ def test_books_allan_poe(rows_per_band: int = 3):
 
 
 if __name__ == "__main__":
-    test_books()
+    # test_books()
     test_books_no_spark()
     # test_books_allan_poe()

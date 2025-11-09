@@ -7,6 +7,7 @@ DATA_FOLDER_PATH = Path(__file__).parent.parent.parent / "data"
 
 spark = SparkSession.builder.appName("Test Shingling Multifile").getOrCreate()
 
+
 def test_shingling_multifile():
     shingling = Shingling(spark)
 

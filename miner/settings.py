@@ -6,7 +6,7 @@ import colorlog
 
 SEED = 42
 BIG_PRIME = 4294967377  # A prime number bigger than 2^32 (The maximum shingle hash value computed by mmh3)
-SHINGLE_PYSPARK_THRESHOLD = 10_000  # TODO adjust this
+SHINGLE_PYSPARK_THRESHOLD = 1_000_000  # TODO adjust this
 
 # Configure colorful logging
 handler = colorlog.StreamHandler()

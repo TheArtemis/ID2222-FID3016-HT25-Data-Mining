@@ -6,6 +6,8 @@ import mmh3
 
 from miner.settings import SEED, SHINGLE_PYSPARK_THRESHOLD
 
+logger = logging.getLogger(__name__)
+
 
 class ShingleSize(Enum):
     BIG = 9  # For big documents
@@ -25,6 +27,7 @@ class Shingling:
 
     def hash_shingles(self, shingles: list[str], duplicates: bool = False) -> list[int]:
         result = []
+        logger.info(f"Len shingles: {len(shingles)}")
         if len(shingles) > SHINGLE_PYSPARK_THRESHOLD:
             self.logger.info(f"Using pyspark to hash {len(shingles)} shingles")
             result = self._hash_shingles_pyspark(shingles)
