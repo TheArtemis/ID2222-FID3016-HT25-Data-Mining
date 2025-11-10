@@ -42,7 +42,9 @@ class Shingling:
     def _hash_shingles_pyspark(self, shingles: list[str]) -> list[int]:
         rdd = self.spark.sparkContext.parallelize(shingles)
         hashed_shingles = rdd.map(Shingling.hash_shingle)
-        return hashed_shingles.collect()
+        result = hashed_shingles.collect()
+        # Remove duplicates while preserving order (same as hash_shingles)
+        return list(dict.fromkeys(result))
 
     def _preprocess_document(self, document: str, keep_spaces: bool = True) -> str:
         if keep_spaces:
