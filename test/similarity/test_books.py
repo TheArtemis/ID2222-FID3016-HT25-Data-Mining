@@ -16,6 +16,9 @@ spark = SparkSession.builder.appName("test_books").getOrCreate()
 # Reduce Spark's logging verbosity
 spark.sparkContext.setLogLevel("WARN")
 
+# Reduce py4j's logging verbosity
+logging.getLogger("py4j").setLevel(logging.WARN)
+
 logger = logging.getLogger(__name__)
 
 # Some story content fields are very large; increase CSV field limit
