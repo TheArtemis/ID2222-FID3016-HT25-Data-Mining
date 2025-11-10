@@ -25,7 +25,7 @@ except OverflowError:
     csv.field_size_limit(10 * 1024 * 1024)
 
 
-def test_books(rows_per_band: int = 3):
+def test_books(rows_per_band: int = 4):
     root = Path(__file__).resolve().parent.parent.parent
     data_dir = root / "data"
     db_books_path = data_dir / "db_books.csv"
@@ -122,12 +122,12 @@ def test_books(rows_per_band: int = 3):
 
     complete_time_end = time.time()
     logger.info(
-        f"Time elapsed for Comparing signatures: {complete_time_end - compare_sign_start_time:.3f} seconds"
+        f"Time elapsed for Comparing signatures: {complete_time_end - compare_sign_start_time:.5f} seconds"
     )
 
     elapsed_total_time = complete_time_end - complete_time_start
     logger.info(
-        f"Total time elapsed for the whole procedure: {elapsed_total_time:.3f} seconds"
+        f"Total time elapsed for the whole procedure (Dickens): {elapsed_total_time:.3f} seconds"
     )
 
 
@@ -213,7 +213,7 @@ def test_books_no_spark(rows_per_band: int = 4):
 
     lsh_end_time = time.time()
     logger.info(
-        f"Time elapsed for LSH (no spark): {lsh_end_time - lsh_start_time:.3f} seconds"
+        f"Time elapsed for LSH (no spark): {lsh_end_time - lsh_start_time:.5f} seconds"
     )
 
     print(f"{candidate_pairs}")
@@ -228,7 +228,7 @@ def test_books_no_spark(rows_per_band: int = 4):
 
     complete_time_end = time.time()
     logger.info(
-        f"Time elapsed for Comparing signatures (no spark): {complete_time_end - compare_sign_start_time:.3f} seconds"
+        f"Time elapsed for Comparing signatures (no spark): {complete_time_end - compare_sign_start_time:.5f} seconds"
     )
 
     elapsed_total_time = complete_time_end - complete_time_start
@@ -339,7 +339,7 @@ def test_books_allan_poe(rows_per_band: int = 3):
 
     elapsed_total_time = complete_time_end - complete_time_start
     logger.info(
-        f"Total time elapsed for the whole procedure: {elapsed_total_time:.3f} seconds"
+        f"Total time elapsed for the whole procedure (Edgar Allan Poe): {elapsed_total_time:.3f} seconds"
     )
 
 
