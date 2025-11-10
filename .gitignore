@@ -210,3 +210,8 @@ __marimo__/
 data/*
 !data/README.md
 !test/data/*
+
+# Latex
+**/report.aux
+**/report.fdb_latexmk
+**/report.fls
