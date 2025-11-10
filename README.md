@@ -26,6 +26,16 @@ This will create a virtual environment and install all dependencies.
 uv run main.py
 ```
 
+### Run lab1
+```bash
+uv run presentation/hw1/main.py
+```
+
+### Modify parameters lab1
+You have to go to the folder /test and look for file test_books. Inside that there
+is the actual implementation of the three tests and you can easily change the number of rows per band and eventually other internal parameters of the function
+
+
 ### Add New Dependencies
 
 To add a regular dependency:
@@ -64,3 +74,5 @@ You can use ruff to format the project and apply autofixing:
 ruff format .
 ruff check --fix .
 ```
+
+
