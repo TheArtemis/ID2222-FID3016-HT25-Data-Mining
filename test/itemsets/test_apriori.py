@@ -3,7 +3,6 @@ from pathlib import Path
 
 from miner.core.itemsets import Basket
 from miner.core.itemsets.apriori import Apriori
-from miner.core.itemsets.association_rules import AssociationRuleGenerator
 
 
 ROOT_DIR = Path(__file__).parent.parent.parent

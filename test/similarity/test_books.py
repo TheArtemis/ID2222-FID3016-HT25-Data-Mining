@@ -25,7 +25,7 @@ except OverflowError:
     csv.field_size_limit(10 * 1024 * 1024)
 
 
-def test_books(rows_per_band: int = 4):
+def test_books(rows_per_band: int = 3):
     root = Path(__file__).resolve().parent.parent.parent
     data_dir = root / "data"
     db_books_path = data_dir / "db_books.csv"
@@ -117,7 +117,8 @@ def test_books(rows_per_band: int = 4):
         result = compare_signatures.compare_signatures_spark(
             signatures[x], signatures[y]
         )
-        logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
+        if result > 0.2:
+            logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
     complete_time_end = time.time()
     logger.info(
@@ -222,7 +223,8 @@ def test_books_no_spark(rows_per_band: int = 4):
     compare_signatures = CompareSignatures(spark)
     for x, y in candidate_pairs:
         result = compare_signatures.compare_signatures(signatures[x], signatures[y])
-        logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
+        if result > 0.2:
+            logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
     complete_time_end = time.time()
     logger.info(
@@ -327,7 +329,8 @@ def test_books_allan_poe(rows_per_band: int = 3):
         result = compare_signatures.compare_signatures_spark(
             signatures[x], signatures[y]
         )
-        logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
+        if result > 0.2:
+            logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
     complete_time_end = time.time()
     logger.info(
