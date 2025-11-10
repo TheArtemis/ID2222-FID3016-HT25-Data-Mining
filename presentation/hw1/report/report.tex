@@ -1,12 +1,12 @@
 % Very simple template for lab reports. Most common packages are already included.
 \documentclass[a4paper, 11pt]{article}
-\usepackage[utf8]{inputenc} % Change according your file encoding
+\usepackage[utf8]{inputenc} % Change according to your file encoding
 \usepackage{graphicx}
 \usepackage{url}
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage{float} % provide [H] placement to pin floats
-\usepackage{placeins} % provide \FloatBarrier to prevent floats passing barriers
+\usepackage{float} % provides [H] placement to pin floats
+\usepackage{placeins} % provides \FloatBarrier to prevent floats from passing barriers
 
 
 %opening
@@ -19,19 +19,16 @@
 \maketitle
 
 \section{Data}
-We decided to employ a dataset taken from Kaggle (\url{https://www.kaggle.com/datasets/shubchat/1002-short-stories-from-project-guttenberg}).
-It contains a a set of short stories extracted from the wonderful portal of Project Guttenberg.
-They are very well known short stories from famoous writers in history.
-In order to extract this files we employed a script where we use kagglehub API to download the files and store 
-them inside the repository for this lab.
-For the sake of our project, we decided to analyze and compare texts
-from a single author as there is a higher chance that documents are similar.
-In particular, every time the test is running we save all the data scraped from the dataset looking only for the author we decide to specify.
-We collect all the data regarding title of book, book number and the content of the short story.
+We decided to use a dataset from Kaggle (\url{https://www.kaggle.com/datasets/shubchat/1002-short-stories-from-project-guttenberg}).  
+It contains a collection of short stories extracted from the well-known Project Gutenberg portal, featuring works from famous authors in literary history.  
 
+To extract the files, we used a script that employs the KaggleHub API to download and store them in the repository for this lab.  
+For the sake of our project, we decided to analyze and compare texts from a single author, as this increases the likelihood of finding similarities between documents.  
+
+Each time the test is executed, we collect all data related to the specified author, including the book title, book number, and the full content of each short story.
 
 \section{Methods}
-We split the procedures for finding similar items into separate modules:
+We divided the procedures for finding similar items into separate modules:
 \begin{itemize}
     \item \textbf{Shingling.py}
     \item \textbf{Minhashing.py}
@@ -39,88 +36,101 @@ We split the procedures for finding similar items into separate modules:
     \item \textbf{Compare\_Signatures.py}
     \item \textbf{LSH.py}
 \end{itemize}
-Tests are in the \textbf{test} folder, and \textbf{main.py} runs the experiments for Dickens and Edgar Allan Poe. 
-For each step we provide a plain implementation and a Spark-based variant, to compare any efficiency gains against the overhead of connecting to a Spark cluster and loading data.
 
-The pipeline starts by converting each document into a set of shingles and hashing them to avoid duplicates. 
-Shingle size is important; we use a size of 9 for large files and 5 for smaller texts. Documents are preprocessed by collapsing consecutive whitespace to a single space, converting to lowercase, and removing punctuation, since punctuation rarely contributes to meaningful text similarity. 
-Shingling splits the text into substrings (shingles), which we hash with mmh3 and mask to 32 bits. To ensure reproducible results across machines, we fix the mmh3 seed.
-The hashed shingles are collected into a list of integers (and we have one list for each document).
+The tests are located in the \textbf{test} folder, and \textbf{main.py} runs the experiments for Dickens and Edgar Allan Poe.  
+For each step, we provide both a plain implementation and a Spark-based variant, allowing us to compare any efficiency gains against the overhead of connecting to a Spark cluster and loading data.
 
-Second step of the pipeline, and also very important is MinHashing. Through minhashing we converted large set of shingles 
-into short signatures preserving similarity. The key theoretical idea is the following:
-Take k = 100 independent hash functions, then apply the functions to the elements (the row numbers with 
-value 1) to compute a vector of k minHash values for a set S; the resulting column-vector is a signature of the set.
-We decided to generate a family of 100 hash functions in mathematical form:
+The pipeline begins by converting each document into a set of shingles and hashing them to avoid duplicates.  
+Shingle size plays an important role; we use a size of 9 for large files and 5 for smaller texts.  
+Before shingling, we preprocess the documents by collapsing consecutive whitespace into a single space, converting text to lowercase, and removing punctuation, since punctuation rarely contributes to meaningful text similarity.  
+
+Shingling splits the text into substrings (shingles), which we hash using \texttt{mmh3} and mask to 32 bits.  
+To ensure reproducible results across machines, we fix the \texttt{mmh3} seed.  
+The hashed shingles are then collected into a list of integers, one for each document.
+
+The second step in the pipeline, and a very important one, is MinHashing.  
+Through MinHashing, we convert large sets of shingles into short signatures while preserving similarity.  
+The key theoretical idea is as follows:  
+take \(k = 100\) independent hash functions and apply them to the elements (row numbers with value 1) to compute a vector of \(k\) minHash values for a set \(S\).  
+The resulting column vector is the signature of the set.
+
+We generate a family of 100 hash functions defined as:
 \[
-h_i(x)= (a_i x + b_i)\bmod p,
+h_i(x) = (a_i x + b_i) \bmod p,
 \]
-where \(p\) is a prime larger than the maximum shingle identifier, and each \(a_i\in\{1,\dots,p-1\}\), \(b_i\in\{0,\dots,p-1\}\) is sampled uniformly at random. 
-Then the following is the function used to compute the signatures for the set of shingles
+where \(p\) is a prime number larger than the maximum shingle identifier, and each \(a_i \in \{1, \dots, p-1\}\), \(b_i \in \{0, \dots, p-1\}\) is sampled uniformly at random.  
+The following function is used to compute the signatures for each set of shingles:
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{signatures.png}
+    \includegraphics[width=0.9\textwidth]{img/signatures.png}
     \caption{Visualization of MinHash signatures for the documents.}
     \label{fig:signatures}
 \end{figure}
-As it can be seen the procedure is quite straightforward in terms of implementation.
 
-Highly connected to the signatures is the \textbf{CompareSignatures} class which be very useful later on.
-It is calculated as the the fraction of the minHash functions in which they agree. Actually it's an estimate
-of the Jaccard similarity between the two sets of signatures.
+As shown above, the procedure is quite straightforward to implement.
+
+Closely related to the signatures is the \textbf{CompareSignatures} class, which becomes very useful later on.  
+It calculates the fraction of the minHash functions in which two signatures agree, in other words, an estimate of the Jaccard similarity between the two sets of signatures.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{compare_signatures.png}
-    \caption{Compute the comparison between signatures.}
+    \includegraphics[width=0.9\textwidth]{img/compare_signatures.png}
+    \caption{Computation of the comparison between signatures.}
     \label{fig:compare_signatures}
 \end{figure}
 
-Now, coming back to the pipeline the final step is Locally Sensitive Hashing, which is necessary to restrict our analysis
-only to the pairs of signatures where we have a high probability that there is a similarity.
-On a complexity point of view checking and comparing all signatures, especially for longer texts would be really too long.
-Two key parameters for this procedure are the number of bands and the number of rows per band. We decided to keep the product 
-b * r = n = 100. We also saw that changing a bit the number of rows per band changes a bit the result obtained. In particular,
-the higher is the number of rows per band, the lower is the similarity between the signatures of the different texts.
-This is in our opinion reasonable as increasing the number of rows per band implies that a longer portion of the text 
-of the short story should be almost identical to another one. This is less probable as the authors tend to 
-use similar phrase structures but they do not entirely copy a list of words inside their texts.
+The final step in our pipeline is Locality-Sensitive Hashing (LSH), which allows us to restrict our analysis to pairs of signatures that are likely to be similar.  
+From a computational perspective, comparing all signatures (especially for long texts) would be prohibitively time-consuming.
 
-\section{Results}
-As I anticipated before, we decided to focus on the short stories by Charles Dickens and Edgar Allan Poe. In both cases we have a reasonable number of contents;
-6 stories for the first and seven for the latter. Since their writing style is different, and also the contents and the themes of their short stories,
-we decided to compare the writing of a single author to the ones of the same writer.
-We expected to find good similarity as generally authors tend to use similar words and adopt a certain syntactical
-set of structures to build phrases. 
+The idea behind LSH is to split the signature matrix into \(b\) bands of \(r\) rows each (so that \(b \times r = n\), where \(n\) is the number of hash functions).  
+The choice of \(b\) and \(r\) is crucial, as it influences the probability of finding similar documents.  
+In particular, using fewer rows per band (\(r\)) increases the likelihood of identifying similar documents by allowing more flexibility in matching parts of the signatures.  
+In our case, we experimented with different values of \(r\) and found that using \(r = 4\) or \(r = 3\) provides a good balance between accuracy and efficiency.  
 
-This picture below shows the result for the Dickens short stories regarding the case with 4 rows per band.
+This result makes sense for our task, as we are analyzing short stories (texts that are not extremely long) and authors tend to maintain a consistent writing style without copying large sections verbatim.  
+Processing each band separately, column by column, we hash the portion of the signature corresponding to that band and we store it in a bucket. (Note that each band uses a different bucket). If different documents hash to the same value in the same band, we consider them as candidate pairs for similarity comparison.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{result_Dickens.png}
-    \caption{result of Dickens test}
+    \includegraphics[width=0.9\textwidth]{img/create_buckets.png}
+    \caption{Bucket creation using LSH}
+    \label{fig:lsh}
+\end{figure}
+
+\section{Results}
+As mentioned earlier, we focused on short stories by Charles Dickens and Edgar Allan Poe.  
+In both cases, we obtained a reasonable number of samples: six stories for Dickens and seven for Poe.  
+Since their writing styles and themes differ significantly, we decided to compare each author's stories only against other works by the same author.  
+
+We expected to observe some degree of similarity, as authors typically reuse similar words and syntactic structures across their works.  
+
+The figure below shows the results for Dickens' short stories using four rows per band:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{img/result_Dickens.png}
+    \caption{Results for the Dickens test.}
     \label{fig:result_Dickens}
 \end{figure}
 
-Translating the expression couple (3,4) into the title of the short story we found out that 
-\textit{Reprinted Pieces} and \textit{Some Christmas Stories} have a similarity rate = 0.29 which is not very very high
-but still inside our expectations. 
+Translating the pair (3,4) into the corresponding story titles, we found that  
+\textit{Reprinted Pieces} and \textit{Some Christmas Stories} have a similarity rate of 0.29.  
+While not particularly high, this result aligns with our expectations.
 
-We decided to add logging messages regarding the length of all the steps of our pipeline. 
-We found out that the longest parts are shingling and minhashing while LSH and a the final
-comparison of the signatures are quite fast. This implies that it is crucial to 
-reduce as much as possible the complexity of the first two procedures (also by using Spark)
-while the other two are less time consuming and can be done directly on our machine without parallelizing.
-For all the different setting of our test cases the time needed to compute the solution changes but in general 
-it is between 8 and 15 seconds. We believe that in this timeframe pyspark is not generally needed since the texts to be analyzed
-are not so long. In a real application with a huge amount of data, instead, it would be essential to speed up all the process.
+We also added logging messages to measure the execution time of each step in our pipeline.  
+We observed that the longest stages are shingling and MinHashing, while LSH and the final signature comparison are relatively fast.  
+This implies that optimizing the first two steps (possibly by leveraging Spark) can significantly improve performance, while the remaining ones can be efficiently executed locally without parallelization.  
+
+Depending on the test configuration, the total computation time ranges from 8 to 15 seconds.  
+Given these small-scale experiments, we believe that using PySpark is not strictly necessary, since the analyzed texts are relatively short.  
+However, in a real-world application involving a much larger dataset, Spark would become essential to speed up the entire process.
 
 \section{Conclusions}
-This homework let us correctly understand all the steps needed to correctly identify similarities inside similar texts.
-We also realized that they are very important tools as they can be used to identify possible plagiarism or mirror webpages
-which are a key aspect in the literature and information markets. Moreover, they can be employed to find stylical aspects of 
-authors (such as we in part did) since we could now how much parts of a text are always used by a writer inside their operas.
-The next step would be to try to use the developed strategy on a very big dataset to prove 
-that our solution is also scalable in terms of performances.
+This assignment helped us thoroughly understand the steps required to identify similarities between texts.  
+We also realized how important these techniques are, as they can be used to detect plagiarism or duplicate web pages, both key aspects in literature and information retrieval.  
 
-
+Moreover, they can reveal stylistic features of authors (as we partially did), such as how frequently certain textual patterns appear in their works.  
+Our next step would be to apply the developed strategy to a much larger dataset in order to evaluate the scalability and performance of our approach.
 
 \end{document}

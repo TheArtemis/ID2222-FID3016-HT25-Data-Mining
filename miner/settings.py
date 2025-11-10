@@ -27,7 +27,7 @@ handler.setFormatter(
 
 logger = logging.getLogger()
 logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Only print ASCII art if not in a Spark worker process
 if os.environ.get("SPARK_ENV_LOADED") is None:

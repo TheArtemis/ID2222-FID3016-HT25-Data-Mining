@@ -33,6 +33,7 @@ class Bucket(BaseModel):
             self.hash_dict[value].append(i)
 
     def get_candidates(self):
+        # Return only the document index lists that have more than one document
         return [doc_idxs for doc_idxs in self.hash_dict.values() if len(doc_idxs) > 1]
 
     def __repr__(self) -> str:

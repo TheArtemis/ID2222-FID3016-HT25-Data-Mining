@@ -21,6 +21,8 @@ logging.getLogger("py4j").setLevel(logging.WARN)
 
 logger = logging.getLogger(__name__)
 
+SIMILARITY_THRESHOLD = 0.2
+
 # Some story content fields are very large; increase CSV field limit
 try:
     csv.field_size_limit(sys.maxsize)
@@ -120,7 +122,7 @@ def test_books(rows_per_band: int = 4):
         result = compare_signatures.compare_signatures_spark(
             signatures[x], signatures[y]
         )
-        if result > 0.2:
+        if result > SIMILARITY_THRESHOLD:
             logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
     complete_time_end = time.time()
@@ -226,7 +228,7 @@ def test_books_no_spark(rows_per_band: int = 4):
     compare_signatures = CompareSignatures(spark)
     for x, y in candidate_pairs:
         result = compare_signatures.compare_signatures(signatures[x], signatures[y])
-        if result > 0.2:
+        if result > SIMILARITY_THRESHOLD:
             logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
     complete_time_end = time.time()
@@ -332,7 +334,7 @@ def test_books_allan_poe(rows_per_band: int = 3):
         result = compare_signatures.compare_signatures_spark(
             signatures[x], signatures[y]
         )
-        if result > 0.2:
+        if result > SIMILARITY_THRESHOLD:
             logger.info(f"For couple {x},{y} similarity rate = {result:.2f}")
 
     complete_time_end = time.time()
