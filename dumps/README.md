@@ -1,0 +1,1 @@
+This is the output of the script `scripts/zipignore.sh`, which creates a zip archive of the current project directory while ignoring files and directories specified in a `.zipignore` file.

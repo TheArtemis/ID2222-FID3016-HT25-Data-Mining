@@ -215,3 +215,8 @@ data/*
 **/report.aux
 **/report.fdb_latexmk
 **/report.fls
+**/report.log
+**/*.synctex.gz
+
+# Dumps
+dumps/*.zip
