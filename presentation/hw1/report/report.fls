@@ -96,11 +96,11 @@ INPUT ./compare_signatures.png
 INPUT ./compare_signatures.png
 INPUT ./compare_signatures.png
 INPUT ./compare_signatures.png
-INPUT ./LSH.png
-INPUT ./LSH.png
-INPUT ./LSH.png
-INPUT ./LSH.png
-INPUT ./LSH.png
+INPUT ./result_Dickens.png
+INPUT ./result_Dickens.png
+INPUT ./result_Dickens.png
+INPUT ./result_Dickens.png
+INPUT ./result_Dickens.png
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmti10.tfm
 INPUT report.aux
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb

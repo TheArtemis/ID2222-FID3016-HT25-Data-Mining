@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1762711554.84912 "/Users/itsrich/Documents/VSCode/ID2222-FID3016-HT25-Data-Mining/presentation/hw1/report/report.tex" "report.pdf" "report" 1762711555.29016 0
-  "/Users/itsrich/Documents/VSCode/ID2222-FID3016-HT25-Data-Mining/presentation/hw1/report/report.tex" 1762711554.66117 7322 d3b330eae60fb95c74cd329d4047177b ""
+["pdflatex"] 1762771125.60396 "/Users/itsrich/Documents/VSCode/ID2222-FID3016-HT25-Data-Mining/presentation/hw1/report/report.tex" "report.pdf" "report" 1762771126.04281 0
+  "/Users/itsrich/Documents/VSCode/ID2222-FID3016-HT25-Data-Mining/presentation/hw1/report/report.tex" 1762771124.99299 7899 658ef500bc53ea7499c708ebc085a998 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/tcrm1095.tfm" 1136768653 1536 02c06700a42be0f5a28664c7273f82e7 ""
@@ -58,10 +58,10 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1761305225 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1761305178 3345738 78684196d07700bd2fd8562a1c47fdca ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "LSH.png" 1762710396.95865 153981 256b7f01cdb1ec9d3423c17e1b165bc9 ""
   "compare_signatures.png" 1762708886.37459 119244 b86fce879823d982693765578563d07f ""
-  "report.aux" 1762711555.2602 985 94173d2e1604d6784d05df9c675d5d64 "pdflatex"
-  "report.tex" 1762711554.66117 7322 d3b330eae60fb95c74cd329d4047177b ""
+  "report.aux" 1762771126.01402 996 2350408ce682d1a4fa50a9c8b6eecee5 "pdflatex"
+  "report.tex" 1762771124.99299 7899 658ef500bc53ea7499c708ebc085a998 ""
+  "result_Dickens.png" 1762709818.37701 97534 86ee8d321ab74790a43662a9f15fabb8 ""
   "signatures.png" 1762707602.18728 191496 e77d23267ff3421b38346b5e42b98ffa ""
   (generated)
   "report.aux"

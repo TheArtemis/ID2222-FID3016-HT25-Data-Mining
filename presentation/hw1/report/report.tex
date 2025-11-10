@@ -95,9 +95,9 @@ set of structures to build phrases.
 This picture below shows the result for the Dickens short stories regarding the case with 4 rows per band.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{LSH.png}
+    \includegraphics[width=0.9\textwidth]{result_Dickens.png}
     \caption{result of Dickens test}
-    \label{fig:LSH}
+    \label{fig:result_Dickens}
 \end{figure}
 
 Translating the expression couple (3,4) into the title of the short story we found out that 
@@ -109,13 +109,17 @@ We found out that the longest parts are shingling and minhashing while LSH and a
 comparison of the signatures are quite fast. This implies that it is crucial to 
 reduce as much as possible the complexity of the first two procedures (also by using Spark)
 while the other two are less time consuming and can be done directly on our machine without parallelizing.
-
+For all the different setting of our test cases the time needed to compute the solution changes but in general 
+it is between 8 and 15 seconds. We believe that in this timeframe pyspark is not generally needed since the texts to be analyzed
+are not so long. In a real application with a huge amount of data, instead, it would be essential to speed up all the process.
 
 \section{Conclusions}
 This homework let us correctly understand all the steps needed to correctly identify similarities inside similar texts.
-We also realized that they are very important tools as they can be used to identify possible plagiarism 
-which is a key aspect in the literature markets. Moreover, they can be employed to find stylical aspects of 
+We also realized that they are very important tools as they can be used to identify possible plagiarism or mirror webpages
+which are a key aspect in the literature and information markets. Moreover, they can be employed to find stylical aspects of 
 authors (such as we in part did) since we could now how much parts of a text are always used by a writer inside their operas.
+The next step would be to try to use the developed strategy on a very big dataset to prove 
+that our solution is also scalable in terms of performances.
 
 
 
