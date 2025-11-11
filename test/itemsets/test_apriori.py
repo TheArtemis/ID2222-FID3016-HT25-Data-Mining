@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import time
 
 from miner.core.itemsets import Basket
 from miner.core.itemsets.apriori import Apriori
@@ -19,8 +20,12 @@ def test_apriori():
     assert len(baskets) > 0
     logger.info(f"Loaded {len(baskets)} baskets")
 
+    start_time = time.time()
+
     apriori = Apriori(baskets, s=MIN_SUPPORT, it=MIN_INTEREST)
     apriori.run()
+
+    apriori_finish_time = time.time()
 
     logger.info("Frequent items table:")
     frequent_table = apriori.frequent_items_table
@@ -34,6 +39,10 @@ def test_apriori():
     logger.info("Frequent itemsets:")
     for itemset, count in list(frequent_table.items()):
         logger.info(f"  {itemset}: {count} occurrences")
+
+    logger.info(
+        f"Time needed for the Apriori procedure: {apriori_finish_time - start_time:.3f} seconds"
+    )
 
 
 if __name__ == "__main__":

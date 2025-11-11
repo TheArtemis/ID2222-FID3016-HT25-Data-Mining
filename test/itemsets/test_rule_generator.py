@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import time
 
 from miner.core.itemsets import Basket
 from miner.core.itemsets.apriori import Apriori
@@ -21,12 +22,19 @@ def test_generator():
     baskets = Basket.load(DATASET_PATH)
     assert len(baskets) > 0
 
+    start_apriori_time = time.time()
     apriori = Apriori(baskets, s=MIN_SUPPORT, it=MIN_INTEREST)
     apriori.run()
 
+    finish_apriori_time = time.time()
     frequent_table = apriori.frequent_items_table
+    logger.info(
+        f"Time needed to apply Apriori algorithm: {finish_apriori_time - start_apriori_time:.3f} seconds"
+    )
 
     logger.info("Generating association rules...")
+
+    association_rule_start_time = time.time()
     rule_generator = AssociationRuleGenerator(
         frequent_itemsets=frequent_table,
         baskets=baskets,
@@ -37,6 +45,8 @@ def test_generator():
 
     rules = rule_generator.generate()
     logger.info(f"Found {len(rules)} association rules")
+
+    association_rule_end_time = time.time()
 
     if rules:
         # Sort by interest (descending) to see most interesting rules first
@@ -62,6 +72,10 @@ def test_generator():
         logger.info("Rule statistics:")
         logger.info(f"  Average confidence: {avg_confidence:.4f}")
         logger.info(f"  Average interest: {avg_interest:.4f}")
+
+    logger.info(
+        f"Time needed to compute association rules: {association_rule_end_time - association_rule_start_time:.3f} seconds"
+    )
 
 
 if __name__ == "__main__":
