@@ -39,6 +39,7 @@ class Minhashing:
                 signature.append(min_hash)
         else:
             for hash_fn in self.hash_functions:
+                # Take the minimum hash value for the current set of hash functions
                 min_hash = min(hash_fn(s) for s in shingles)
                 signature.append(min_hash)
 

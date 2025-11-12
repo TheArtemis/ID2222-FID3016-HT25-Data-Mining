@@ -82,6 +82,8 @@ def test_books(rows_per_band: int = 4):
 
     complete_time_start = time.time()
 
+    ### Start
+
     shingling = Shingling(spark)
 
     shingles = shingling.shingle_multi(documents)
@@ -188,6 +190,8 @@ def test_books_no_spark(rows_per_band: int = 4):
 
     complete_time_start = time.time()
 
+    ### Start
+
     shingling = Shingling(spark)
 
     shingles = shingling.shingle_multi(documents)
@@ -293,6 +297,8 @@ def test_books_allan_poe(rows_per_band: int = 3):
     documents = [stories[bookno] for bookno in stories.keys()]
 
     complete_time_start = time.time()
+
+    ### Start
 
     shingling = Shingling(spark)
 
