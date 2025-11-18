@@ -1,24 +1,31 @@
 from scipy.stats import bernoulli
+from typing import FrozenSet, Callable, DefaultDict, Set
+from collections import defaultdict
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Triest:
-    "needed for Triest triangle estimation method"
+# function needed to parse the file to find the edges
+def _get_edge(line: str) -> FrozenSet[int]:
+    return frozenset([int(vertex) for vertex in line.split()]) #frozenset to avoid duplicates and make it "immutable"
 
-    def __init__(self, file: str, M: int):
+
+class Triest:
+
+    def __init__(self, M: int):
         # M is the size of the memory
-        # str the file to be read
-        self.file: str = file
         self.M: int = M
         self.t: int = 0  # as indicated by the paper
+        self.tau_vertices: DefaultDict[int, int] = defaultdict(
+            int
+        )  # it is a dictionary with int default value
         self.tau: int = 0  # as indicatwed by the paper
-        self.S = set[frozenset[int]] = set()
+        self.S: Set[FrozenSet[int]] = set()
 
     def _sample_edge(self, t: int) -> bool:
-        "This function will determine if the new edge could be added to the graph"
-        "using the reservoir sampling logic"
+        """This function will determine if the new edge could be added to the graph
+        using the reservoir sampling logic"""
 
         if t <= self.M:
             return True  # Ww still have space in memory
@@ -49,7 +56,14 @@ class Triest:
         :param operator: the lambda used to update the counters
         :param edge: the edge interested in the update
         """
-        # build neighbour sets per vertex
+
+        """ neighbour sets: For each vertex in the edge, this creates a set of all its neighbors 
+        Iterate through all links (edges) in self.S,
+        Keep links that contain the current vertex
+        and extract all nodes from those links, excluding vertex itself
+        Result: A list with 2 sets (one neighbor set per vertex in the edge)
+        """
+
         neighbour_sets = [
             {
                 node
@@ -61,11 +75,13 @@ class Triest:
             for vertex in edge
         ]
 
-        # handle empty edge or no sets
+        # This unpacks the neighbor sets and finds their intersection—vertices connected to both edge vertices.
+        # This represents potential triangle completions.
         common_neighbourhood = (
             set.intersection(*neighbour_sets) if neighbour_sets else set()
         )
 
+        # I update all the counters by either adding or removing
         for vertex in common_neighbourhood:
             self.tau = operator(self.tau, 1)
             self.tau_vertices[vertex] = operator(self.tau_vertices[vertex], 1)
@@ -83,5 +99,25 @@ class TriestBase(Triest):
 
     """
 
-    def run(self) -> float:
+    def run(self, file_path: str) -> float:
         logger.info(f"Running the algorithm with M = {self.M}")
+
+        # open the file
+        with open(file_path, "r") as f:
+            logger.info("Processing the stream directly from the file")
+
+            for line in f:
+                edge = _get_edge(line)
+                self.t += 1
+
+
+                if self._sample_edge(self.t):
+                    self.S.add(edge)
+                    self._update_counters(lambda x,y: x+y, edge)
+                
+                if self.t % 1000 == 0:
+                    logger.info("The current estimate for the number of triangles is {}.".format(
+                        self.xi * self.tau)
+                    )
+            
+        return self.xi * self.tau
