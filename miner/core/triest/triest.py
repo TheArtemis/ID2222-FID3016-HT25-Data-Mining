@@ -1,6 +1,6 @@
 from scipy.stats import bernoulli
 from collections.abc import Callable
-from collections import defaultdict
+from collections import DefaultDict
 import logging
 from functools import reduce
 
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 # function needed to parse the file to find the edges
-def _get_edge(line: str) -> frozenset[int]:
+def _get_edge(line: str) -> FrozenSet[int]:
     return frozenset(
         [int(vertex) for vertex in line.split()]
     )  # frozenset to avoid duplicates and make it "immutable"
@@ -19,7 +19,7 @@ class Triest:
         # M is the size of the memory
         self.M: int = M
         self.t: int = 0  # as indicated by the paper
-        self.tau_vertices: defaultdict[int, int] = defaultdict(
+        self.tau_vertices: DefaultDict[int, int] = DefaultDict(
             int
         )  # it is a dictionary with int default value
         self.tau: int = 0  # as indicatwed by the paper
@@ -34,7 +34,9 @@ class Triest:
         elif bernoulli.rvs(
             p=self.M / t
         ):  # returns a single bernoulli value(either 0 or 1)
-            # remove edge
+            edge_to_remove: FrozenSet[int] = random.choice(list(self.S))
+            self.S.remove(edge_to_remove)
+            self._update_counters(lambda x, y: x - y, edge_to_remove)
             return True
         else:
             return False
@@ -50,7 +52,7 @@ class Triest:
         )
 
     def _update_counters(
-        self, operator: Callable[[int, int], int], edge: frozenset[int]
+        self, operator: Callable[[int, int], int], edge: FrozenSet[int]
     ):
         """
         This function updates the counters related to estimating the number of triangles. The update happens
@@ -131,6 +133,44 @@ class TriestImproved(Triest):
     @property
     def eta(self) -> float:
         return max(1, (self.t - 1) * (self.t - 2) / (self.M * (self.M - 1)))
+    
+    def _sample_edge(self, t: int) -> bool:
+        """This function will determine if the new edge could be added to the graph
+        using the reservoir sampling logic"""
+
+        if t <= self.M:
+            return True  # Ww still have space in memory
+        elif bernoulli.rvs(
+            p=self.M / t
+        ):  # returns a single bernoulli value(either 0 or 1)
+            edge_to_remove: FrozenSet[int] = random.choice(list(self.S))
+            self.S.remove(edge_to_remove)
+            return True
+        else:
+            return False
+
+    def _update_counters (self, operator: Callable[[int, int], int], edge: FrozenSet[int]):
+        common_neighbourhood: Set[int] = reduce(
+            lambda a, b: a & b,
+            [
+                {
+                    node
+                    for link in self.S if vertex in link
+                    for node in link if node != vertex
+                }
+                for vertex in edge
+            ]
+        )
+
+        for vertex in common_neighbourhood:
+            self.tau += self.eta
+            self.tau_vertices[vertex] += self.eta
+
+            for node in edge:
+                self.tau_vertices[node] += self.eta
+        
+    
+
 
     def run(self, file_path: str) -> float:
         # Reset all values
