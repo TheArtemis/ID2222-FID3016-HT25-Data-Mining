@@ -31,12 +31,25 @@ class Apriori:
         s: float = 0.01,
         it: float = 0.0,
     ):
+        """
+        Initialize the Apriori algorithm.
+
+        Args:
+            baskets: List of baskets.
+            s: Support threshold.
+            it: Interest threshold.
+        """
         self.logger = logging.getLogger(__name__)
         self.baskets = baskets
-        self.s = s  # Support threshold
-        self.it = it  # Interest threshold
+        self.s = s
+        self.it = it
         self.analyzer = ItemsetAnalyzer(baskets, s, it)
+
+        # Each element is a collection of frequent itemsets of size k
+        # Index is k - 1
         self.frequent_by_size: list[FrequentSetsCollection] = []
+
+        # Threshold is the minimum number of occurrences of an itemset to be considered frequent
         self.threshold = s * len(baskets)
 
     def run(self):
@@ -46,13 +59,17 @@ class Apriori:
             self.logger.debug(f"Starting pass {k}")
             frequent = self.run_pass(k)
 
+            # If there are no new frequent itemsets, stop the algorithm
             if not frequent:
                 self.logger.debug(f"No frequent itemsets at pass {k}, stopping")
                 break
 
+            # This is the k-th collection of frequent itemsets
             collection = FrequentSetsCollection()
             for itemset, count in frequent.items():
                 collection.add(itemset, count)
+
+            # Add it to the list of frequent itemsets
             self.frequent_by_size.append(collection)
             self.logger.debug(f"Pass {k}: found {len(frequent)} frequent {k}-itemsets")
             k += 1
@@ -62,10 +79,14 @@ class Apriori:
         )
 
     def count_singletons(self) -> dict[tuple[int, ...], int]:
+        # Count the frequency of each singleton in the baskets
         counts: dict[tuple[int, ...], int] = {}
+
+        # each contains a set of integers
         for basket in self.baskets:
             for item in basket.itemset:
                 singleton = (item,)
+
                 counts[singleton] = counts.get(singleton, 0) + 1
         return counts
 
@@ -105,6 +126,7 @@ class Apriori:
                 candidate = self.join_itemsets(itemsets[i], itemsets[j])
 
                 # Check if the candidate has frequent subsets in the previous pass
+                # prune candidates
                 if candidate and self.has_frequent_subsets(candidate, prev_set):
                     candidates.add(candidate)
 
@@ -120,7 +142,9 @@ class Apriori:
             if len(items) < k:
                 continue
 
+            # Generate all combinations of size k from the items
             for combo in combinations(items, k):
+                # If the combination is in the candidates, increment the count
                 if combo in candidates:
                     counts[combo] = counts.get(combo, 0) + 1
 
@@ -159,6 +183,7 @@ class Apriori:
             # Count the candidates
             counts: dict[tuple[int, ...], int] = self.count_candidates(candidates, k)
 
+        # Filter the candidates to keep only the frequent ones
         frequent: dict[tuple[int, ...], int] = self.filter_frequent(counts)
 
         self.logger.debug(
@@ -169,6 +194,7 @@ class Apriori:
 
     def get_previous_frequent_itemsets(self, k: int) -> dict[tuple[int, ...], int]:
         if 0 < k <= len(self.frequent_by_size):
+            # k-1 because the index starts at 0
             return self.frequent_by_size[k - 1].itemsets
         return {}
 

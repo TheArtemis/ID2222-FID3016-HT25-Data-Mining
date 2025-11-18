@@ -22,61 +22,67 @@
 \section{Introduction}
 
 This homework was about discovering frequent itemsets and generating association rules.
-This two problems are important especially in the field of sales transaction databases
-since companies wants to discover and understand the logic that stands behing customers' behaviours.
-The procedure is in a way quite straightforward and will be tested on 
-a dataset given by the teacher that includes 100000 generated transactions (baskets) of hashed items.
-We decided not to use Apache Spark in this homework since our algorithm were doing their job quite fast.
+These two problems are important especially in the field of sales transaction databases,
+since companies want to discover and understand the logic behind customers' behavior.
+The procedure is quite straightforward and we tested it on a dataset provided by the teacher that includes 100,000 generated transactions (baskets) of hashed items.
+We decided not to use Apache Spark since our algorithms performed efficiently enough.
 
-\section{Our methods}
-We needed to develop a way to solve the following two questions;
+\section{Our Methods}
+We needed to develop solutions to address the following two problems:
 \begin{itemize}
     \item How to find frequent itemsets with support at least \textit{s}
-    \item How to generate association rules with confidence at least \textit{c} from the itemsets found before
+    \item How to generate association rules with confidence at least \textit{c} from the itemsets found
 \end{itemize}
-In order to solve the first problem we implemented the A-Priori algorithm (standard level-wise frequent itemset mining procedure) in the class \textbf{apriori}.
-The constructor stores baskets, support s and computes an absolute threshold = s * len(baskets).
-The method \textit{run} controls the iterative passes k = 1, 2, … and stops when no new frequent itemsets are found.
-This function is calling \textit{run\_pass(k)} that orchestrates a single pass: singletons for k=1, otherwise candidate generation, counting, and filtering.
-Counting is done basket-by-basket rather than materializing global combinations, minimizing peak memory.
-Another important function is \textit{has\_frequent\_subsets(candidate, prev\_frequent)} which implements Apriori’s pruning: all (k-1)-subsets must be frequent.
-This pruning step greatly reduces the number of candidates kept in memory.
-Regarding the storing of data, we have implemented \textit{frequent\_by\_size} which  stores persistent frequent itemsets per size; ephemeral candidate data is released after each pass.
-while  \textit{frequent\_items\_table} flattens all discovered frequent itemsets for reporting in tests.
-The algorithm limits memory by generating candidates only from previous frequent itemsets, not from all combinations.
-Overall, the code follows classic Apriori heuristics to find frequent itemsets while keeping memory usage controlled.
 
-After testing its functionalities we used that methods and set of new ones in the class called \textbf{association\_rules}
-to address the second question.
-AssociationRule is a small data holder: antecedent (frozenset), consequent (int), support, confidence, interest.
-AssociationRuleGenerator is initialized with frequent\_itemsets, baskets, and threshold paramters.
-The generator keeps an ItemsetAnalyzer instance to compute support, confidence, and interest on demand.
-Then there is the method \textit{generate()} that iterates all frequent itemsets and skips singletons (only itemsets of size >= 2 produce rules).
-For each itemset it calls \textit{process\_itemset()}, which builds candidate rules from each item by removing that item to form the antecedent.
-Instead, \textit{generate\_rule()} constructs the antecedent frozenset and uses ItemsetAnalyzer to compute support, confidence, and interest.
-It returns an AssociationRule object populated with these metrics.
-Finally, \textit{filter\_rule()} applies \textit{min\_support, min\_confidence, and min\_interest thresholds} to either accept or reject a rule.
-Accepted rules are appended to the final list returned by generate().
-The generator does not create large intermediate structures, so it's okay in terms of memory usage; it just iterates existing frequent itemsets and computes metrics as needed.
-Computation cost comes mainly from analyzer calls (support/confidence/interest), which scan baskets or reuse precomputed summaries.
-The output is a flat list of AssociationRule objects, ready for sorting or grouping by the caller (as done in the test).
-Logging calls provide progress and debug information but the core API returns pure rule objects for downstream use.
+\subsection{A-Priori Algorithm Implementation}
+We implemented the A-Priori algorithm (standard level-wise frequent itemset mining procedure) in the \textbf{apriori} class to solve the first problem.
+The constructor stores baskets and support threshold \textit{s}, computing an absolute threshold = \textit{s} $\times$ len(baskets).
+The \textit{run} method controls the iterative passes \textit{k} = 1, 2, \ldots and stops when no new frequent itemsets are found.
+We call \textit{run\_pass(k)} to orchestrate each single pass: it generates singletons for \textit{k}=1, and for higher \textit{k} it performs candidate generation, counting, and filtering.
 
-Finally we implemented a set of tests on the dataset given to show that our procedure it is working
-and also measuring how much time do our algorithms take to find solutions.
+For efficiency, we count itemsets basket-by-basket rather than materializing all combinations at once, which minimizes peak memory usage.
+The function \textit{has\_frequent\_subsets(candidate, prev\_frequent)} implements Apriori's pruning strategy: all (\textit{k}-1)-subsets must be frequent for a candidate to be retained.
+This pruning greatly reduces the number of candidates stored in memory.
+
+We implemented \textit{frequent\_by\_size} to store persistent frequent itemsets grouped by size, releasing ephemeral candidate data after each pass.
+The \textit{frequent\_items\_table} method flattens all discovered frequent itemsets for reporting in tests.
+Overall, our algorithm follows classic Apriori heuristics to discover frequent itemsets while maintaining controlled memory usage.
+
+\subsection{Association Rule Generation}
+After testing the Apriori implementation, we implemented association rule generation using the \textbf{association\_rules} class.
+The \textit{AssociationRule} class serves as a simple data holder containing: antecedent (frozenset), consequent (int), support, confidence, and interest metrics.
+We initialize the \textit{AssociationRuleGenerator} with frequent itemsets, baskets, and threshold parameters.
+Internally, we maintain an \textit{ItemsetAnalyzer} instance to compute support, confidence, and interest metrics on demand.
+
+Our \textit{generate()} method iterates through all frequent itemsets and skips singletons (only itemsets of size $\geq$ 2 produce rules).
+For each itemset, we call \textit{process\_itemset()}, which builds candidate rules by using each item as a consequent and the remaining items as the antecedent.
+The \textit{generate\_rule()} method constructs the antecedent frozenset and uses \textit{ItemsetAnalyzer} to compute the support, confidence, and interest values.
+It returns an \textit{AssociationRule} object populated with these metrics.
+
+Finally, \textit{filter\_rule()} applies minimum support, confidence, and interest thresholds to accept or reject each rule.
+Accepted rules are appended to the final list returned by \textit{generate()}.
+Our generator does not create large intermediate data structures; it simply iterates through existing frequent itemsets and computes metrics as needed.
+The computational cost is mainly determined by \textit{ItemsetAnalyzer} calls, which either scan baskets or reuse precomputed summaries.
+The output is a flat list of \textit{AssociationRule} objects, ready for sorting or grouping by the caller.
+
+\subsection{Testing}
+We implemented comprehensive tests on the provided dataset to validate our implementation and measure algorithm performance.
 
 
 \section{Results}
-The two main tests are called \textbf{test\_apriori} and \textbf{test\_rule\_generator}.
-The first one gave us the following results:
+We ran two main tests: \textbf{test\_apriori} and \textbf{test\_rule\_generator}.
+
+\subsection{Apriori Results}
+The Apriori test produced the following results:
 \begin{itemize}
     \item 381 frequent itemsets
-    \item itemsets by size: [375, 6]
+    \item Itemsets by size: [375, 6]
 \end{itemize}
-It took 0.460 seconds for the procedure.
+The algorithm completed in 0.460 seconds.
 
-Regarding the second test, where actually the first part includes the Apriori procedure as explained before,
-we found 12 association rules, that are shown below.
+\subsection{Association Rule Results}
+In the second test, which includes the Apriori procedure followed by rule generation as described above,
+we discovered 12 association rules:
 \begin{verbatim}
 INFO   AssociationRule({227} -> 390, s=0.0105, c=0.5770, i=0.5502)
 INFO   AssociationRule({390} -> 227, s=0.0105, c=0.3907, i=0.3725)
@@ -91,15 +97,14 @@ INFO   AssociationRule({368} -> 682, s=0.0119, c=0.1524, i=0.1111)
 INFO   AssociationRule({829} -> 368, s=0.0119, c=0.1753, i=0.0971)
 INFO   AssociationRule({368} -> 829, s=0.0119, c=0.1525, i=0.0844
 \end{verbatim}
-Statistically speaking we have an average confidence of \textbf{0.2824} and an average interest of \textbf{0.2328}.
-Looking at the time requested it is \textbf{0.483} which implies that the longer procedure is the apriori algorithm with 
-respected to the rule generation phase.
+
+The average confidence of the generated rules is \textbf{0.2824}, with an average interest of \textbf{0.2328}.
+The total execution time was \textbf{0.483} seconds, indicating that the Apriori algorithm is the more computationally expensive step compared to rule generation.
 
 \section{Conclusion}
-This assignment helped us thoroughly understand the steps required to identify assocaition rules.  
-We also realized how important these techniques are, what might be their economical impact and why they are 
-used especially looking at the possible scalability.
+This assignment helped us thoroughly understand the steps required to identify association rules.
+We gained insight into the importance of these techniques, their potential economic impact, and their widespread use, particularly regarding scalability concerns.
 
-Moreover, we could try in the future to test our modules on bigger datasets, maybe even on data streams
-to verify in reality whether our expectations on performance and scalability are respected.
+In future work, we would like to test our implementation on larger datasets and possibly on data streams
+to verify whether our expectations regarding performance and scalability hold in practice.
 \end{document}

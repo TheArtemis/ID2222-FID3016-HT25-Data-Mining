@@ -11,8 +11,8 @@ DATASET_PATH = ROOT_DIR / "data" / "sales_transactions" / "T10I4D100K.dat"
 logger = logging.getLogger(__name__)
 
 
-MIN_SUPPORT = 0.01
-MIN_INTEREST = 0.00
+MIN_SUPPORT = 0.001
+MIN_INTEREST = 0.01
 
 
 def test_apriori():
