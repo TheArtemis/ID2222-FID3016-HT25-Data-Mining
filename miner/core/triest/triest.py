@@ -89,16 +89,20 @@ class TriestBase(Triest):
     """
 
     def run(self, file_path: str) -> float:
+        # Reset all values
+        self.t = 0
+        self.tau = 0
+        self.tau_vertices.clear()
+        self.S.clear()
+        
         logger.info(f"Running the algorithm with M = {self.M}")
 
         # open the file
         with open(file_path, "r") as f:
             logger.info("Processing the stream directly from the file")
-
             for line in f:
                 edge = _get_edge(line)
                 self.t += 1
-
 
                 if self._sample_edge(self.t):
                     self.S.add(edge)
