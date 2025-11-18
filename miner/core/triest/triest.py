@@ -2,6 +2,7 @@ from scipy.stats import bernoulli
 from typing import FrozenSet, Callable, DefaultDict, Set
 from collections import defaultdict
 import logging
+from functools import reduce
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class Triest:
         else:
             return False
 
+    @property
     def xi(self) -> float:
         return max(
             1.0,
@@ -56,29 +58,16 @@ class Triest:
         :param operator: the lambda used to update the counters
         :param edge: the edge interested in the update
         """
-
-        """ neighbour sets: For each vertex in the edge, this creates a set of all its neighbors 
-        Iterate through all links (edges) in self.S,
-        Keep links that contain the current vertex
-        and extract all nodes from those links, excluding vertex itself
-        Result: A list with 2 sets (one neighbor set per vertex in the edge)
-        """
-
-        neighbour_sets = [
-            {
-                node
-                for link in self.S
-                if vertex in link
-                for node in link
-                if node != vertex
-            }
-            for vertex in edge
-        ]
-
-        # This unpacks the neighbor sets and finds their intersection—vertices connected to both edge vertices.
-        # This represents potential triangle completions.
-        common_neighbourhood = (
-            set.intersection(*neighbour_sets) if neighbour_sets else set()
+        common_neighbourhood: Set[int] = reduce(
+            lambda a, b: a & b,
+            [
+                {
+                    node
+                    for link in self.S if vertex in link
+                    for node in link if node != vertex
+                }
+                for vertex in edge
+            ]
         )
 
         # I update all the counters by either adding or removing
