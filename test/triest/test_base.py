@@ -8,7 +8,7 @@ DATASET_PATH = ROOT_DIR / "data" / "triest" / "facebook_combined.txt"
 logger = logging.getLogger(__name__)
 
 # size of the memory; it could be modified
-M = 50000
+M = 10000
 
 
 def test_base(M):

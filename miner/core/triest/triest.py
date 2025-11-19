@@ -1,8 +1,9 @@
 from scipy.stats import bernoulli
 from collections.abc import Callable
-from collections import DefaultDict
+from typing import DefaultDict, FrozenSet
 import logging
 from functools import reduce
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,7 @@ class TriestImproved(Triest):
     @property
     def eta(self) -> float:
         return max(1, (self.t - 1) * (self.t - 2) / (self.M * (self.M - 1)))
-    
+
     def _sample_edge(self, t: int) -> bool:
         """This function will determine if the new edge could be added to the graph
         using the reservoir sampling logic"""
@@ -149,17 +150,21 @@ class TriestImproved(Triest):
         else:
             return False
 
-    def _update_counters (self, operator: Callable[[int, int], int], edge: FrozenSet[int]):
+    def _update_counters(
+        self, operator: Callable[[int, int], int], edge: FrozenSet[int]
+    ):
         common_neighbourhood: Set[int] = reduce(
             lambda a, b: a & b,
             [
                 {
                     node
-                    for link in self.S if vertex in link
-                    for node in link if node != vertex
+                    for link in self.S
+                    if vertex in link
+                    for node in link
+                    if node != vertex
                 }
                 for vertex in edge
-            ]
+            ],
         )
 
         for vertex in common_neighbourhood:
@@ -168,9 +173,6 @@ class TriestImproved(Triest):
 
             for node in edge:
                 self.tau_vertices[node] += self.eta
-        
-    
-
 
     def run(self, file_path: str) -> float:
         # Reset all values
