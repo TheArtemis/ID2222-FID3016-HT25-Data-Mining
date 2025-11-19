@@ -1,15 +1,15 @@
 from scipy.stats import bernoulli
 from collections.abc import Callable
-from typing import DefaultDict, FrozenSet
 import logging
 from functools import reduce
 import random
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
 
 # function needed to parse the file to find the edges
-def _get_edge(line: str) -> FrozenSet[int]:
+def _get_edge(line: str) -> frozenset[int]:
     return frozenset(
         [int(vertex) for vertex in line.split()]
     )  # frozenset to avoid duplicates and make it "immutable"
@@ -20,7 +20,7 @@ class Triest:
         # M is the size of the memory
         self.M: int = M
         self.t: int = 0  # as indicated by the paper
-        self.tau_vertices: DefaultDict[int, int] = DefaultDict(
+        self.tau_vertices: defaultdict[int, int] = defaultdict(
             int
         )  # it is a dictionary with int default value
         self.tau: int = 0  # as indicatwed by the paper
@@ -35,7 +35,7 @@ class Triest:
         elif bernoulli.rvs(
             p=self.M / t
         ):  # returns a single bernoulli value(either 0 or 1)
-            edge_to_remove: FrozenSet[int] = random.choice(list(self.S))
+            edge_to_remove: frozenset[int] = random.choice(list(self.S))
             self.S.remove(edge_to_remove)
             self._update_counters(lambda x, y: x - y, edge_to_remove)
             return True
@@ -53,7 +53,7 @@ class Triest:
         )
 
     def _update_counters(
-        self, operator: Callable[[int, int], int], edge: FrozenSet[int]
+        self, operator: Callable[[int, int], int], edge: frozenset[int]
     ):
         """
         This function updates the counters related to estimating the number of triangles. The update happens
@@ -144,16 +144,16 @@ class TriestImproved(Triest):
         elif bernoulli.rvs(
             p=self.M / t
         ):  # returns a single bernoulli value(either 0 or 1)
-            edge_to_remove: FrozenSet[int] = random.choice(list(self.S))
+            edge_to_remove: frozenset[int] = random.choice(list(self.S))
             self.S.remove(edge_to_remove)
             return True
         else:
             return False
 
     def _update_counters(
-        self, operator: Callable[[int, int], int], edge: FrozenSet[int]
+        self, operator: Callable[[int, int], int], edge: frozenset[int]
     ):
-        common_neighbourhood: Set[int] = reduce(
+        common_neighbourhood: set[int] = reduce(
             lambda a, b: a & b,
             [
                 {
