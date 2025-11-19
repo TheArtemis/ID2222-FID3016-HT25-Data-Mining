@@ -15,13 +15,13 @@ class GraphLoader:
         with open(self.file_path) as f:
             self.edges = np.loadtxt(f, delimiter=",", dtype=int)
 
-    def build(self, undirected: bool = True) -> csr_matrix:
+    def build(self, undirected: bool = False) -> csr_matrix:
         if not self.edges:
             self.load_data()
 
-        i = self.edges[:, 0] - 1  # Convert 1-based to 0-based indexing
-        j = self.edges[:, 1] - 1  # Convert 1-based to 0-based indexing
-        n = self.edges.max()  # Max node ID (1-based)
+        i = self.edges[:, 0] - 1
+        j = self.edges[:, 1] - 1
+        n = self.edges.max()
         self.n = n
         self.logger.debug(f"Building graph with {n} nodes and {len(self.edges)} edges")
 
