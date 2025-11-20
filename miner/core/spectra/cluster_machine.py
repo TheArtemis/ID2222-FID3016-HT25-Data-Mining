@@ -51,7 +51,7 @@ class ClusterMachine:
             k = self.laplacian.shape[0] - 1
 
         # Compute the k largest eigenvalues and eigenvectors
-        eigenvalues, eigenvectors = eigsh(self.laplacian, k=k, which="LM")
+        eigenvalues, eigenvectors = eigsh(self.laplacian, k=k, which="LA")
 
         self.eigenvalues = eigenvalues
         self.eigenvectors = eigenvectors
@@ -72,5 +72,10 @@ class ClusterMachine:
         self.build_laplacian()
         self.compute_eigenvalues()
 
-        self.is_duplicate_eigenvalues()
+        # This is not necessary as Laplacian matrix is symmetric (and thus it has no duplicate eigenvalues)
+        duplicate_eigenvalues = self.is_duplicate_eigenvalues()
+        if duplicate_eigenvalues:
+            self.logger.warning("Duplicate eigenvalues found, clustering not possible")
+            return
+
         pass
