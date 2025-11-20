@@ -23,5 +23,3 @@ __all__ = [
     "Basket",
     "ItemsetAnalyzer",
 ]
-
-

@@ -6,8 +6,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from test.itemsets import test_apriori as test_apr
-from test.itemsets import test_rule_generator as test_rules
+from test.itemsets import test_apriori as test_apr  # noqa: E402
+from test.itemsets import test_rule_generator as test_rules  # noqa: E402
 
 
 def run_apriori() -> None:
