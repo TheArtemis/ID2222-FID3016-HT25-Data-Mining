@@ -2,15 +2,14 @@ import logging
 from scipy.sparse import csr_matrix, spdiags
 from scipy.sparse.linalg import eigsh
 from miner.decorators.timer import timer
+from sklearn.cluster import KMeans
 import numpy as np
 from miner.core.spectra.model import EighResult
 
 
 class ClusterMachine:
     def __init__(self, graph: csr_matrix, k: int = 5):
-        self.graph = self.remove_loops(
-            graph
-        )  # Graph adjacency matrix (Represents the affinity matrix)
+        self.graph = graph  # Graph adjacency matrix (Represents the affinity matrix)
         self.k = k  # The k subsets we want to cluster the graph into
 
         # Store
@@ -20,6 +19,9 @@ class ClusterMachine:
 
         # Logger
         self.logger = logging.getLogger(__name__)
+
+        # Cache
+        self.latest_clusters: np.ndarray | None = None
 
     def remove_loops(self) -> csr_matrix:
         # Remove loops from the graph by subtracting the diagonal of the graph from itself
@@ -47,11 +49,13 @@ class ClusterMachine:
 
     @property
     def X(self) -> np.ndarray:
+        if self.eigenvectors is None:
+            self.compute_eigenvalues()
         return self.eigenvectors
 
     @timer(active=True)
     def compute_eigenvalues(self, k: int | None = None) -> EighResult:
-        if not self.laplacian:
+        if self.laplacian is None:
             self.build_laplacian()
 
         # Use eigsh for sparse symmetric matrices (computes k smallest eigenvalues)
@@ -77,22 +81,25 @@ class ClusterMachine:
         self.logger.debug(f"Is duplicate eigenvalues: {result}")
         return result
 
-    @property
     def Y(self) -> np.ndarray:
         # We build the Y matrix by renormalizing each of X rows to have a unit length
-        # Y_ij = X_ij / Sum(X^2_ij)^(1/2)
+        # Y_ij = X_ij / Sum_j(X^2_ij)^(1/2)
         Y = self.X / np.linalg.norm(self.X, axis=1, keepdims=True)
         return Y
 
+    @timer()
+    def compute_kmeans(self) -> np.ndarray:
+        kmeans = KMeans(n_clusters=self.k, random_state=0).fit(self.Y())
+        return kmeans.predict(self.Y())
+
     def cluster(self):
         self.logger.debug("Starting clustering process")
+
+        self.remove_loops()
         self.build_laplacian()
-        self.compute_eigenvalues()
+        self.compute_eigenvalues(k=self.k)
 
-        # This is not necessary as Laplacian matrix is symmetric (and thus it has no duplicate eigenvalues)
-        duplicate_eigenvalues = self.is_duplicate_eigenvalues()
-        if duplicate_eigenvalues:
-            self.logger.warning("Duplicate eigenvalues found, clustering not possible")
-            return
+        clusters = self.compute_kmeans()
+        self.latest_clusters = clusters
 
-        pass
+        return self.latest_clusters
