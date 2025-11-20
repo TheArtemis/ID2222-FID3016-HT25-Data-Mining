@@ -8,7 +8,9 @@ from miner.core.spectra.model import EighResult
 
 class ClusterMachine:
     def __init__(self, graph: csr_matrix, k: int = 5):
-        self.graph = graph  # Graph adjacency matrix (Represents the affinity matrix)
+        self.graph = self.remove_loops(
+            graph
+        )  # Graph adjacency matrix (Represents the affinity matrix)
         self.k = k  # The k subsets we want to cluster the graph into
 
         # Store
@@ -43,8 +45,15 @@ class ClusterMachine:
 
         return self.laplacian
 
+    @property
+    def X(self) -> np.ndarray:
+        return self.eigenvectors
+
     @timer(active=True)
     def compute_eigenvalues(self, k: int | None = None) -> EighResult:
+        if not self.laplacian:
+            self.build_laplacian()
+
         # Use eigsh for sparse symmetric matrices (computes k smallest eigenvalues)
         # If k is None, compute all eigenvalues (up to n-1 for n×n matrix)
         if k is None:
@@ -68,9 +77,15 @@ class ClusterMachine:
         self.logger.debug(f"Is duplicate eigenvalues: {result}")
         return result
 
+    @property
+    def Y(self) -> np.ndarray:
+        # We build the Y matrix by renormalizing each of X rows to have a unit length
+        # Y_ij = X_ij / Sum(X^2_ij)^(1/2)
+        Y = self.X / np.linalg.norm(self.X, axis=1, keepdims=True)
+        return Y
+
     def cluster(self):
         self.logger.debug("Starting clustering process")
-        self.remove_loops()
         self.build_laplacian()
         self.compute_eigenvalues()
 
