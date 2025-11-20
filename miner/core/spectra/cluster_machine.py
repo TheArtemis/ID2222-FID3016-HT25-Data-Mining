@@ -53,11 +53,13 @@ class ClusterMachine:
         # Compute the k largest eigenvalues and eigenvectors
         eigenvalues, eigenvectors = eigsh(self.laplacian, k=k, which="LA")
 
-        self.eigenvalues = eigenvalues
-        self.eigenvectors = eigenvectors
+        # Sort the eigenvalues and eigenvectors in descending order
+        # (x1, x2,..., xk)
+        idx = eigenvalues.argsort()[::-1]
+        self.eigenvalues = eigenvalues[idx]
+        self.eigenvectors = eigenvectors[:, idx]
 
-        self.logger.debug(f"Computed eigenvalues: {self.eigenvalues[:10]}...")
-        self.logger.debug(f"Computed eigenvectors: {self.eigenvectors.shape}")
+        self.logger.debug(f"Computed {k} largest eigenvalues and eigenvectors")
 
         return EighResult(eigenvalues=self.eigenvalues, eigenvectors=self.eigenvectors)
 
