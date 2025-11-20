@@ -3,6 +3,9 @@ import os
 
 import colorlog
 
+# Import TIME level to ensure it's registered (side effect: adds TIME level to logging)
+from miner.decorators import TIME_LEVEL  # noqa: F401
+
 
 SEED = 42
 BIG_PRIME = 4294967377  # A prime number bigger than 2^32 (The maximum shingle hash value computed by mmh3)
@@ -18,6 +21,7 @@ handler.setFormatter(
         log_colors={
             "DEBUG": "cyan",
             "INFO": "green",
+            "TIME": "purple",
             "WARNING": "yellow",
             "ERROR": "red",
             "CRITICAL": "red,bg_white",
