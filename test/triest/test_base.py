@@ -25,7 +25,9 @@ def test_base(M):
 
     for estimation in estimations:
         logger.info(f"{estimation}")
-    logger.info(f"Time needed for the experiment is: {end_time-start_time:.2f} seconds " )
+    logger.info(
+        f"Time needed for the experiment is: {end_time - start_time:.2f} seconds "
+    )
 
 
 if __name__ == "__main__":

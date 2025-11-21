@@ -36,7 +36,12 @@ def main():
 
     parser = argparse.ArgumentParser(prog="hw3-run", description="Run hw3 Triest demos")
     parser.add_argument("test", nargs="?", choices=["base", "improved"], default=None)
-    parser.add_argument("--M", type=int, default=None, help="Memory size M to use for Triest (overrides module default)")
+    parser.add_argument(
+        "--M",
+        type=int,
+        default=None,
+        help="Memory size M to use for Triest (overrides module default)",
+    )
     args = parser.parse_args()
 
     if args.test is None:
@@ -66,7 +71,9 @@ def main():
     # check that the dataset file exists before running
     dataset_path = Path(tb.DATASET_PATH)
     if not dataset_path.exists():
-        print(f"Dataset file not found: {dataset_path}\nPlease ensure the file exists or update the DATASET_PATH in the test modules.")
+        print(
+            f"Dataset file not found: {dataset_path}\nPlease ensure the file exists or update the DATASET_PATH in the test modules."
+        )
         raise SystemExit(1)
 
     # run the selected test with M_val
