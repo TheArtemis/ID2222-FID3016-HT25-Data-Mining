@@ -23,7 +23,7 @@ class Triest:
         self.tau_vertices: defaultdict[int, int] = defaultdict(
             int
         )  # it is a dictionary with int default value
-        self.tau: int = 0  # as indicatwed by the paper
+        self.tau: int = 0  # as indicated by the paper
         self.S: set[frozenset[int]] = set()
 
     def _sample_edge(self, t: int) -> bool:
@@ -56,11 +56,18 @@ class Triest:
         self, operator: Callable[[int, int], int], edge: frozenset[int]
     ):
         """
-        This function updates the counters related to estimating the number of triangles. The update happens
-        through the operator and involves the edge and its neighbours.
-
+        This function updates the counters related to estimating the number of triangles. 
         :param operator: the lambda used to update the counters
         :param edge: the edge interested in the update
+
+        """
+        """For each endpoint in the edge, this creates a set of all neighbors:
+
+        Loop through all links in self.S (collection of edges)
+        If the current endpoint appears in that link, collect all nodes from that link
+        Exclude the endpoint itself 
+        reduce() applies the lambda function cumulatively across the list:
+        a & b performs set intersection
         """
         common_neighbourhood: set[int] = reduce(
             lambda a, b: a & b,
@@ -68,13 +75,14 @@ class Triest:
                 {
                     node
                     for link in self.S
-                    if vertex in link
+                    if endpoint in link 
                     for node in link
-                    if node != vertex
+                    if node != endpoint
                 }
-                for vertex in edge
+                for endpoint in edge
             ],
         )
+
 
         # I update all the counters by either adding or removing
         for vertex in common_neighbourhood:
@@ -119,6 +127,7 @@ class TriestBase(Triest):
                         f"The current estimate for the number of triangles is {self.xi * self.tau}."
                     )
 
+        # as proved in the paper
         return self.xi * self.tau
 
 
@@ -159,14 +168,16 @@ class TriestImproved(Triest):
                 {
                     node
                     for link in self.S
-                    if vertex in link
+                    if endpoint in link
                     for node in link
-                    if node != vertex
+                    if node != endpoint
                 }
-                for vertex in edge
+                for endpoint in edge
             ],
         )
 
+        """We update the counters differently wrt 
+        TriestBase algorithm"""
         for vertex in common_neighbourhood:
             self.tau += self.eta
             self.tau_vertices[vertex] += self.eta
