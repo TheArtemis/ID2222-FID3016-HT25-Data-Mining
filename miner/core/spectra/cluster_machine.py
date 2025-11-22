@@ -16,6 +16,7 @@ class ClusterMachine:
         self.laplacian: csr_matrix | None = None
         self.eigenvalues: np.ndarray | None = None
         self.eigenvectors: np.ndarray | None = None
+        self._fiedler_vector: np.ndarray | None = None
 
         # Logger
         self.logger = logging.getLogger(__name__)
@@ -86,6 +87,51 @@ class ClusterMachine:
         # Y_ij = X_ij / Sum_j(X^2_ij)^(1/2)
         Y = self.X / np.linalg.norm(self.X, axis=1, keepdims=True)
         return Y
+
+    @property
+    def fiedler_vector(self) -> np.ndarray:
+        """
+        Compute and return the Fiedler vector.
+        The Fiedler vector is the eigenvector corresponding to the second smallest
+        eigenvalue of the Laplacian. For the normalized Laplacian, this corresponds
+        to the eigenvector of the second smallest eigenvalue (after the zero eigenvalue).
+
+        Returns:
+            The Fiedler vector as a numpy array
+        """
+        if self._fiedler_vector is None:
+            if self.laplacian is None:
+                self.build_laplacian()
+
+            # Compute the smallest eigenvalues to get the Fiedler vector
+            # The Fiedler vector corresponds to the second smallest eigenvalue
+            # (the first smallest is typically 0 for connected graphs)
+            k = min(2, self.laplacian.shape[0] - 1)
+            eigenvalues, eigenvectors = eigsh(self.laplacian, k=k, which="SA")
+
+            # Sort in ascending order (smallest first)
+            idx = eigenvalues.argsort()
+            sorted_eigenvalues = eigenvalues[idx]
+            sorted_eigenvectors = eigenvectors[:, idx]
+
+            # The Fiedler vector is the second smallest (index 1)
+            # If we only have one eigenvalue, use that one
+            if len(sorted_eigenvalues) >= 2:
+                self._fiedler_vector = sorted_eigenvectors[:, 1]
+            else:
+                self.logger.warning(
+                    "Only one eigenvalue available, using it as Fiedler vector"
+                )
+                self._fiedler_vector = sorted_eigenvectors[:, 0]
+
+            self.logger.debug("Computed Fiedler vector")
+
+        return self._fiedler_vector
+
+    @fiedler_vector.setter
+    def fiedler_vector(self, value: np.ndarray | None):
+        """Setter for fiedler_vector property."""
+        self._fiedler_vector = value
 
     @timer()
     def compute_kmeans(self) -> np.ndarray:
