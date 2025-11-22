@@ -8,8 +8,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import the existing test modules for Triest
-from test.triest import test_base as tb
-from test.triest import test_improved as ti
+from test.triest import test_base as tb  # noqa: E402
+from test.triest import test_improved as ti  # noqa: E402
 
 
 def run_base(M: int) -> None:
