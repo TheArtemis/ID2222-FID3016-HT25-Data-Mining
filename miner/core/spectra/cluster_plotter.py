@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.sparse.linalg import eigsh
 import networkx as nx
 
 from miner.core.spectra.cluster_machine import ClusterMachine
