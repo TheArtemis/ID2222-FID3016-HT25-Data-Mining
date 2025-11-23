@@ -19,7 +19,11 @@ def test_improved(M):
     for i in range(0, 1):
         logger.info(f"Running iteration {i + 1} for M={M}...")
         estimation = triest.run(DATASET_PATH)
-        estimations.append(estimation)
+        if callable(estimation):
+            estimation_value = estimation()
+        else:
+            estimation_value = estimation
+        estimations.append(estimation_value)
     end_time = time.time()
     for estimation in estimations:
         logger.info(f"{estimation}")
