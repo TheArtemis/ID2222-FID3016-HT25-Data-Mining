@@ -15,7 +15,7 @@ class GraphLoader:
         with open(self.file_path) as f:
             self.edges = np.loadtxt(f, delimiter=",", dtype=int)
 
-    def build(self, undirected: bool = False) -> csr_matrix:
+    def build(self, undirected: bool = True) -> csr_matrix:
         if not self.edges:
             self.load_data()
 
@@ -26,8 +26,20 @@ class GraphLoader:
         self.logger.debug(f"Building graph with {n} nodes and {len(self.edges)} edges")
 
         matrix = csr_matrix((np.ones(len(self.edges)), (i, j)), shape=(n, n))
+
         if undirected:
-            matrix = matrix + matrix.T
+            # Check if matrix is already symmetric by comparing non-zero patterns
+            # For sparse matrices, we check if (matrix != matrix.T) has any non-zeros
+            diff = matrix - matrix.T
+            is_symmetric = diff.nnz == 0
+
+            if not is_symmetric:
+                # Make symmetric by taking maximum (for binary graphs, this is equivalent to OR)
+                # This ensures we don't double weights if edges appear in both directions
+                matrix = matrix.maximum(matrix.T)
+                self.logger.debug("Made graph symmetric (undirected)")
+            else:
+                self.logger.debug("Graph is already symmetric")
 
         self.last_build = matrix
         return matrix

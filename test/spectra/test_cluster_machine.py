@@ -51,6 +51,12 @@ def test_cluster_machine_1(K: int):
     plotter.plot_fiedler_vector(
         EXAMPLE_1_K_FOLDER, f"example1_fiedler_vector_K_{K}.png"
     )
+    plotter.plot_fiedler_vector_on_graph(
+        EXAMPLE_1_K_FOLDER,
+        f"example1_fiedler_vector_graph_K_{K}.png",
+        layout="spring",
+        node_size=70,
+    )
 
 
 def test_cluster_machine_2(K: int):
@@ -74,6 +80,12 @@ def test_cluster_machine_2(K: int):
     )
     plotter.plot_fiedler_vector(
         EXAMPLE_2_K_FOLDER, f"example2_fiedler_vector_K_{K}.png"
+    )
+    plotter.plot_fiedler_vector_on_graph(
+        EXAMPLE_2_K_FOLDER,
+        f"example2_fiedler_vector_graph_K_{K}.png",
+        layout="circular",
+        node_size=70,
     )
 
 

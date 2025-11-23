@@ -33,6 +33,18 @@ logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
+# Remove logging we dont like
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+logging.getLogger("networkx").setLevel(logging.WARNING)
+logging.getLogger("scipy").setLevel(logging.WARNING)
+logging.getLogger("scikit-learn").setLevel(logging.WARNING)
+logging.getLogger("pyspark").setLevel(logging.WARNING)
+logging.getLogger("kagglehub").setLevel(logging.WARNING)
+logging.getLogger("colorlog").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("PIL").setLevel(logging.WARNING)
+
+
 # Only print ASCII art if not in a Spark worker process
 if os.environ.get("SPARK_ENV_LOADED") is None:
     logger.info("""\n
