@@ -15,16 +15,21 @@ EX_2_PATH = DATA_DIR / "example2.dat"
 PRESENTATION_DIR = ROOT_DIR / "presentation" / "hw4" / "imgs"
 EXAMPLE_1_FOLDER = PRESENTATION_DIR / "example1"
 EXAMPLE_2_FOLDER = PRESENTATION_DIR / "example2"
+K1 = 4
+K2 = 10
 
-if not EXAMPLE_1_FOLDER.exists():
-    EXAMPLE_1_FOLDER.mkdir(parents=True, exist_ok=True)
-if not EXAMPLE_2_FOLDER.exists():
-    EXAMPLE_2_FOLDER.mkdir(parents=True, exist_ok=True)
-
-K = 10
+EXAMPLE_1_K_FOLDER = EXAMPLE_1_FOLDER / f"K_{K1}"
+EXAMPLE_2_K_FOLDER = EXAMPLE_2_FOLDER / f"K_{K2}"
 
 
-def test_cluster_machine_1():
+def ensure_paths():
+    if not EXAMPLE_1_K_FOLDER.exists():
+        EXAMPLE_1_K_FOLDER.mkdir(parents=True, exist_ok=True)
+    if not EXAMPLE_2_K_FOLDER.exists():
+        EXAMPLE_2_K_FOLDER.mkdir(parents=True, exist_ok=True)
+
+
+def test_cluster_machine_1(K: int):
     graph_loader = GraphLoader(EX_1_PATH)
     matrix = graph_loader.build()
     cluster_machine = ClusterMachine(matrix, k=K)
@@ -33,13 +38,22 @@ def test_cluster_machine_1():
     logger.info(cluster_machine.latest_clusters)
 
     plotter = ClusterPlotter(cluster_machine)
-    plotter.plot_clusters(EXAMPLE_1_FOLDER, f"example1_clusters_K_{K}.png")
+    plotter.plot_clusters(EXAMPLE_1_K_FOLDER, f"example1_clusters_K_{K}.png")
     plotter.plot_eigenvalue_spectrum(
-        EXAMPLE_1_FOLDER, f"example1_eigenvalue_spectrum_K_{K}.png"
+        EXAMPLE_1_K_FOLDER, f"example1_eigenvalue_spectrum_K_{K}.png"
+    )
+    plotter.plot_graph_structure(
+        EXAMPLE_1_K_FOLDER,
+        f"example1_graph_structure_K_{K}.png",
+        layout="spring",
+        node_size=70,
+    )
+    plotter.plot_fiedler_vector(
+        EXAMPLE_1_K_FOLDER, f"example1_fiedler_vector_K_{K}.png"
     )
 
 
-def test_cluster_machine_2():
+def test_cluster_machine_2(K: int):
     graph_loader = GraphLoader(EX_2_PATH)
     matrix = graph_loader.build()
     cluster_machine = ClusterMachine(matrix, k=K)
@@ -48,12 +62,22 @@ def test_cluster_machine_2():
     logger.info(cluster_machine.latest_clusters)
 
     plotter = ClusterPlotter(cluster_machine)
-    plotter.plot_clusters(EXAMPLE_2_FOLDER, f"example2_clusters_K_{K}.png")
+    plotter.plot_clusters(EXAMPLE_2_K_FOLDER, f"example2_clusters_K_{K}.png")
     plotter.plot_eigenvalue_spectrum(
-        EXAMPLE_2_FOLDER, f"example2_eigenvalue_spectrum_K_{K}.png"
+        EXAMPLE_2_K_FOLDER, f"example2_eigenvalue_spectrum_K_{K}.png"
+    )
+    plotter.plot_graph_structure(
+        EXAMPLE_2_K_FOLDER,
+        f"example2_graph_structure_K_{K}.png",
+        layout="circular",
+        node_size=70,
+    )
+    plotter.plot_fiedler_vector(
+        EXAMPLE_2_K_FOLDER, f"example2_fiedler_vector_K_{K}.png"
     )
 
 
 if __name__ == "__main__":
-    test_cluster_machine_1()
-    test_cluster_machine_2()
+    ensure_paths()
+    test_cluster_machine_1(K1)
+    test_cluster_machine_2(K2)
