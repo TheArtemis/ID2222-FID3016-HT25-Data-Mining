@@ -1,0 +1,58 @@
+% Very simple template for lab reports. Most common packages are already included.
+\documentclass[a4paper, 11pt]{article}
+\usepackage[utf8]{inputenc} % Change according to your file encoding
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float} % provides [H] placement to pin floats
+\usepackage{placeins} % provides \FloatBarrier to prevent floats from passing barriers
+
+
+%opening
+\title{Report 4: Graph Spectra}
+\author{Group 150: Lorenzo Deflorian, Riccardo Fragale}
+\date{\today{}}
+
+\begin{document}
+
+\maketitle
+
+
+\section{Introduction}
+
+The goal of this homework is to implement the spectral graph clustering algorithm described in this paper~\url{https://ai.stanford.edu/~ang/papers/nips01-spectral.pdf} and use it to analyze two given graphs.
+
+\section{Implementation}
+
+The implementation is straightforward and can be found in the \texttt{miner/core/spectra/cluster_machine.py} module.
+
+Given the graph represented by it's adjacency matrix, the steps to follow are:
+
+\begin{enumerate}
+    \item Remove loops from the graph by subtracting the diagonal of the graph from itself
+    \item Build the degree matrix $D$
+    \item Build the Laplacian matrix $L = D - A$
+    \item Compute the eigenvalues and eigenvectors of the Laplacian matrix $L$
+    \item We will take the first $k$ eigenvectors corresponding to the $k$ larges eigenvalues to build the feature matrix $X$
+
+    \item We will then form the normalized feature matrix $Y$ to have unit length vectors for each row.
+    \item We will then cluster the data using the k-means algorithm.
+\end{enumerate}
+
+The degree matrix $D$ is a diagonal matrix where the element $(i, i)$ is the degree of the $i$-th node, hence it just tells us how many edges are connected to the $i$-th node.
+
+The Laplacian matrix $L$ is a symmetric matrix that is used to compute the eigenvalues and eigenvectors of the graph. It is defined as $L = D - A$, where $A$ is the adjacency matrix of the graph.
+
+The idea behind the Laplacian matrix is to measure how far each node is from the other nodes. (... expand on this)
+
+Once we have the feature matrix $X$, we can form the normalized feature matrix $Y$ to have unit length vectors for each row.
+
+The k-means algorithm is used to cluster the data into $k$ clusters.
+
+\section{Results}
+
+
+\section{Conclusion}
+
+\end{document}
