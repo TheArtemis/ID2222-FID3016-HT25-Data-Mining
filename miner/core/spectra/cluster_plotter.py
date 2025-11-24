@@ -137,7 +137,7 @@ class ClusterPlotter:
         plt.figure(figsize=figsize)
 
         # Draw edges first (so nodes appear on top)
-        nx.draw_networkx_edges(G, pos, alpha=0.2, width=0.5, edge_color="gray")
+        nx.draw_networkx_edges(G, pos, alpha=0.2, width=1.5, edge_color="gray")
 
         # Draw nodes with cluster colors
         nx.draw_networkx_nodes(
@@ -276,7 +276,7 @@ class ClusterPlotter:
         plt.figure(figsize=figsize)
 
         # Draw edges first
-        nx.draw_networkx_edges(G, pos, alpha=0.2, width=0.5, edge_color="gray")
+        nx.draw_networkx_edges(G, pos, alpha=0.2, width=1.5, edge_color="gray")
 
         # Draw nodes colored by Fiedler vector values
         # Use a diverging colormap (e.g., RdBu_r) to show positive/negative values

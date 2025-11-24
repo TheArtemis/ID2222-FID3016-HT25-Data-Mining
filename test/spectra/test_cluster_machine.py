@@ -16,7 +16,7 @@ PRESENTATION_DIR = ROOT_DIR / "presentation" / "hw4" / "imgs"
 EXAMPLE_1_FOLDER = PRESENTATION_DIR / "example1"
 EXAMPLE_2_FOLDER = PRESENTATION_DIR / "example2"
 K1 = 4
-K2 = 10
+K2 = 2
 
 EXAMPLE_1_K_FOLDER = EXAMPLE_1_FOLDER / f"K_{K1}"
 EXAMPLE_2_K_FOLDER = EXAMPLE_2_FOLDER / f"K_{K2}"
@@ -39,9 +39,7 @@ def test_cluster_machine_1(K: int):
 
     plotter = ClusterPlotter(cluster_machine)
     plotter.plot_clusters(EXAMPLE_1_K_FOLDER, f"example1_clusters_K_{K}.png")
-    plotter.plot_eigenvalue_spectrum(
-        EXAMPLE_1_K_FOLDER, f"example1_eigenvalue_spectrum_K_{K}.png"
-    )
+
     plotter.plot_graph_structure(
         EXAMPLE_1_K_FOLDER,
         f"example1_graph_structure_K_{K}.png",
@@ -69,13 +67,11 @@ def test_cluster_machine_2(K: int):
 
     plotter = ClusterPlotter(cluster_machine)
     plotter.plot_clusters(EXAMPLE_2_K_FOLDER, f"example2_clusters_K_{K}.png")
-    plotter.plot_eigenvalue_spectrum(
-        EXAMPLE_2_K_FOLDER, f"example2_eigenvalue_spectrum_K_{K}.png"
-    )
+
     plotter.plot_graph_structure(
         EXAMPLE_2_K_FOLDER,
         f"example2_graph_structure_K_{K}.png",
-        layout="circular",
+        layout="spring",
         node_size=70,
     )
     plotter.plot_fiedler_vector(

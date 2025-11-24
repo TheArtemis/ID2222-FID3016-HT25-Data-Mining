@@ -60,7 +60,10 @@ class ClusterMachine:
         return self.eigenvectors
 
     @timer(active=True)
-    def compute_eigenvalues(self) -> EighResult:
+    def compute_eigenvalues(self, k: int | None = None) -> EighResult:
+        if k is None:
+            k = self.k
+
         if self.laplacian is None:
             self.build_laplacian()
 
@@ -68,7 +71,7 @@ class ClusterMachine:
         # If k is None, compute all eigenvalues (up to n-1 for n×n matrix)
 
         # Compute the k largest eigenvalues and eigenvectors
-        eigenvalues, eigenvectors = eigsh(self.laplacian, k=self.k, which="LA")
+        eigenvalues, eigenvectors = eigsh(self.laplacian, k=k, which="LA")
 
         # Sort the eigenvalues and eigenvectors in descending order
         # (x1, x2,..., xk)
@@ -76,7 +79,7 @@ class ClusterMachine:
         self.eigenvalues = eigenvalues[idx]
         self.eigenvectors = eigenvectors[:, idx]
 
-        self.logger.debug(f"Computed {self.k} largest eigenvalues and eigenvectors")
+        self.logger.debug(f"Computed {k} largest eigenvalues and eigenvectors")
 
         return EighResult(eigenvalues=self.eigenvalues, eigenvectors=self.eigenvectors)
 
@@ -98,41 +101,28 @@ class ClusterMachine:
 
     @property
     def fiedler_vector(self) -> np.ndarray:
-        """
-        Compute and return the Fiedler vector.
-        The Fiedler vector is the eigenvector corresponding to the second smallest
-        eigenvalue of the Laplacian. For the normalized Laplacian, this corresponds
-        to the eigenvector of the second smallest eigenvalue (after the zero eigenvalue).
+        # Check if we already computed eigenvectors for clustering
+        if self.eigenvectors is not None and self.eigenvectors.shape[1] >= 2:
+            # The eigenvectors are already sorted descending (Largest to Smallest)
+            # Index 0 is the stationary distribution (lambda ~ 1)
+            # Index 1 is the Fiedler vector (lambda ~ 2nd largest)
+            return self.eigenvectors[:, 1]
 
-        Returns:
-            The Fiedler vector as a numpy array
-        """
-        if self._fiedler_vector is None:
-            if self.laplacian is None:
-                self.build_laplacian()
+        # If not computed yet, compute the top 2 LARGEST
+        if self.laplacian is None:
+            self.build_laplacian()
 
-            # Compute the smallest eigenvalues to get the Fiedler vector
-            # The Fiedler vector corresponds to the second smallest eigenvalue
-            # (the first smallest is typically 0 for connected graphs)
-            k = min(2, self.laplacian.shape[0] - 1)
-            eigenvalues, eigenvectors = eigsh(self.laplacian, k=k, which="SA")
+        vals, vecs = eigsh(self.laplacian, k=2, which="LA")
 
-            # Sort in ascending order (smallest first)
-            idx = eigenvalues.argsort()
-            sorted_eigenvalues = eigenvalues[idx]
-            sorted_eigenvectors = eigenvectors[:, idx]
+        # Sort descending
+        idx = vals.argsort()[::-1]
+        sorted_vecs = vecs[:, idx]
 
-            # The Fiedler vector is the second smallest (index 1)
-            # If we only have one eigenvalue, use that one
-            if len(sorted_eigenvalues) >= 2:
-                self._fiedler_vector = sorted_eigenvectors[:, 1]
-            else:
-                self.logger.warning(
-                    "Only one eigenvalue available, using it as Fiedler vector"
-                )
-                self._fiedler_vector = sorted_eigenvectors[:, 0]
-
-            self.logger.debug("Computed Fiedler vector")
+        # Return 2nd vector
+        if sorted_vecs.shape[1] >= 2:
+            self._fiedler_vector = sorted_vecs[:, 1]
+        else:
+            self._fiedler_vector = sorted_vecs[:, 0]
 
         return self._fiedler_vector
 
