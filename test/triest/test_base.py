@@ -16,8 +16,8 @@ def test_base(M):
     start_time = time.time()
     triest = TriestBase(M)
     estimations = []
-    start_time = time.time()
-    for i in range(0, 1):
+    n = 5
+    for i in range(0, n):
         logger.info(f"Running iteration {i + 1} for M={M}...")
         estimation = triest.run(DATASET_PATH)
         if callable(estimation):
@@ -29,8 +29,10 @@ def test_base(M):
 
     for estimation in estimations:
         logger.info(f"{estimation}")
+
+    time_needed = (end_time - start_time) / float(n)
     logger.info(
-        f"Time needed for the experiment is: {end_time - start_time:.2f} seconds "
+        f"Average time needed for the experiment is: {time_needed:.2f} seconds "
     )
 
 
