@@ -7,6 +7,7 @@
 \usepackage{xcolor}
 \usepackage{float} % provides [H] placement to pin floats
 \usepackage{placeins} % provides \FloatBarrier to prevent floats from passing barriers
+\usepackage{booktabs} % for professional-looking tables
 
 
 %opening
@@ -25,7 +26,7 @@ The goal of this homework is to implement the spectral graph clustering algorith
 
 \section{Implementation}
 
-The implementation is straightforward and can be found in the \texttt{miner/core/spectra/cluster_machine.py} module.
+The implementation is straightforward and can be found in the \texttt{miner/core/spectra/cluster\_machine.py} module.
 
 Given the graph represented by it's adjacency matrix, the steps to follow are:
 
@@ -49,6 +50,95 @@ The idea behind the Laplacian matrix is to measure how far each node is from the
 Once we have the feature matrix $X$, we can form the normalized feature matrix $Y$ to have unit length vectors for each row.
 
 The k-means algorithm is used to cluster the data into $k$ clusters.
+
+\section{To cluster or not to cluster}
+One of the first questions that we can ask is: what is the optimal number of clusters to use?
+
+To answer this question we can check the eigenvalues of the Laplacian matrix and compare the gaps between them. The idea is that the larger the gap, the more distinct the clusters are.
+
+The implementation of this is straightforward and can be found in the \texttt{miner/core/spectra/gap\_finder.py} module.
+
+Let's take a look at the eigenvalues of the Laplacian matrix for the example 1 graph.
+
+Table~\ref{tab:gaps} shows the gaps between consecutive eigenvalues of the Laplacian matrix. The largest gap is between $\lambda_4$ and $\lambda_5$ with a value of 0.1942, suggesting that $k=4$ might be an appropriate number of clusters.
+
+\begin{table}[H]
+\centering
+\caption{Gaps between consecutive eigenvalues of the Laplacian matrix}
+\label{tab:gaps}
+\begin{tabular}{cc}
+\toprule
+Eigenvalue Pair & Gap Value \\
+\midrule
+$\lambda_1$ -- $\lambda_2$ & 0.0000 \\
+$\lambda_2$ -- $\lambda_3$ & 0.0000 \\
+$\lambda_3$ -- $\lambda_4$ & 0.0000 \\
+$\lambda_4$ -- $\lambda_5$ & 0.1942 \\
+$\lambda_5$ -- $\lambda_6$ & 0.0012 \\
+$\lambda_6$ -- $\lambda_7$ & 0.0483 \\
+$\lambda_7$ -- $\lambda_8$ & 0.0093 \\
+$\lambda_8$ -- $\lambda_9$ & 0.0043 \\
+$\lambda_9$ -- $\lambda_{10}$ & 0.0044 \\
+$\lambda_{10}$ -- $\lambda_{11}$ & 0.0590 \\
+$\lambda_{11}$ -- $\lambda_{12}$ & 0.0030 \\
+$\lambda_{12}$ -- $\lambda_{13}$ & 0.0173 \\
+$\lambda_{13}$ -- $\lambda_{14}$ & 0.0038 \\
+$\lambda_{14}$ -- $\lambda_{15}$ & 0.0275 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The largest gap is between $\lambda_4$ and $\lambda_5$ with a value of 0.1942, suggesting that $k=4$ might be an appropriate number of clusters.
+
+Let's plot the clusters for $k=4$.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{../imgs/example1/K_4/example1_graph_structure_K_4.png}
+\caption{Clusters for $k=4$}
+\label{fig:example1_graph_structure_K_4}
+\end{figure}
+
+As we can see the clusters are quite good, the nodes are well separated and the four clusters are very distinct.
+
+Let's now take a look at the example 2 graph.
+
+Table~\ref{tab:gaps2} shows the gaps between consecutive eigenvalues of the Laplacian matrix for example 2. The largest gap is between $\lambda_2$ and $\lambda_3$ with a value of 0.5451, suggesting that $k=2$ might be an appropriate number of clusters.
+
+\begin{table}[H]
+\centering
+\caption{Gaps between consecutive eigenvalues of the Laplacian matrix for example 2}
+\label{tab:gaps2}
+\begin{tabular}{cc}
+\toprule
+Eigenvalue Pair & Gap Value \\
+\midrule
+$\lambda_1$ -- $\lambda_2$ & 0.1656 \\
+$\lambda_2$ -- $\lambda_3$ & 0.5451 \\
+$\lambda_3$ -- $\lambda_4$ & 0.0187 \\
+$\lambda_4$ -- $\lambda_5$ & 0.0173 \\
+$\lambda_5$ -- $\lambda_6$ & 0.0042 \\
+$\lambda_6$ -- $\lambda_7$ & 0.0098 \\
+$\lambda_7$ -- $\lambda_8$ & 0.0028 \\
+$\lambda_8$ -- $\lambda_9$ & 0.0094 \\
+$\lambda_9$ -- $\lambda_{10}$ & 0.0136 \\
+$\lambda_{10}$ -- $\lambda_{11}$ & 0.0034 \\
+$\lambda_{11}$ -- $\lambda_{12}$ & 0.0106 \\
+$\lambda_{12}$ -- $\lambda_{13}$ & 0.0058 \\
+$\lambda_{13}$ -- $\lambda_{14}$ & 0.0078 \\
+$\lambda_{14}$ -- $\lambda_{15}$ & 0.0033 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+If we plot the clusters for $k=2$ we get the following result:
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{../imgs/example2/K_2/example2_graph_structure_K_2.png}
+\caption{Clusters for $k=2$}
+\label{fig:example2_graph_structure_K_2}
+\end{figure}
+
+Also in this case the clusters are quite good, the nodes are well separated and the two clusters are very distinct.
 
 \section{Results}
 

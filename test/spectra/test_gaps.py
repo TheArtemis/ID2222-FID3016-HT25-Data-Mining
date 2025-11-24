@@ -14,7 +14,7 @@ EX_2_PATH = DATA_DIR / "example2.dat"
 
 
 def test_ex_1():
-    graph_loader = GraphLoader(EX_1_PATH)
+    graph_loader = GraphLoader(EX_2_PATH)
     matrix = graph_loader.build()
     gap_finder = GapFinder(matrix)
     max_gap = gap_finder.find_best_k(max_k_to_check=15)
