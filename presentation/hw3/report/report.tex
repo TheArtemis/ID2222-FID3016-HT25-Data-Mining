@@ -20,41 +20,32 @@
 
 
 \section{Introduction}
-In this homework we were asked to implement the algorithm defined in a paper related 
-to a stream graph processing algorithm. 
-We decided to select the paper called \textit{TRIÈST: Counting Local and Global Triangles in
-Fully-Dynamic Streams with Fixed Memory Size} 
-\footnote{Paper: \textit{TRIÈST: Counting Local and Global Triangles in Fully-Dynamic Streams with Fixed Memory Size}, de Stefani, Epasto, Riondato, Upfal (2016). Available at: \url{https://www.kdd.org/kdd2016/papers/files/rfp0465-de-stefaniA.pdf?courseID=57474&assignmentID=351128&skipModuleItemSequence=true}} 
-written by de Stefani, Epasto, Riondato and Upfal in 2016. 
-It defines a set of one-pass streaming algorithms to compute unbiased, high-quality approximations of the 
-global and local (i.e., incident to each vertex) number of triangles in a fully-dynamic graph represented as
-an adversarial stream of edge insertions and deletions.
-We decided to implement only Triest-Base and Triest-FD, the first two algorithms presented in the paper 
-which does not support a fully-dinamic sream as input.
-Both algorithms use the reservoir sampling technique to randomically choose a simple random sample, without replacement,
-of k items from a population of unknown size n (actually a data stream).
+In this homework we implemented an algorithm described in a paper on streaming graph processing.
+We chose the paper \textit{TRI\`{E}ST: Counting Local and Global Triangles in Fully-Dynamic Streams with Fixed Memory Size}
+\footnote{de Stefani, Epasto, Riondato, Upfal (2016). 
+Available at: \url{https://www.kdd.org/kdd2016/papers/files/rfp0465-de-stefaniA.pdf?courseID=57474&assignmentID=351128&skipModuleItemSequence=true}}.
 
+The paper presents one-pass streaming algorithms that compute unbiased, high-quality approximations
+of the global and local (per-vertex) numbers of triangles in a fully dynamic graph, where updates
+are adversarial streams of edge insertions and deletions.
+
+We implemented Triest-Base and Triest-FD, two of the algorithms described in the paper. Triest-Base
+does not support fully-dynamic streams, while Triest-FD is the version that handles both insertions
+and deletions. Both algorithms rely on reservoir sampling to randomly select a sample (without replacement)
+of k items from a population of unknown size n (a data stream).
 
 
 
 \section{Our Methods}
-A first important thing to notice is the selection of the 
-data structures where to store all the edges of the stream 
-contained in the input file.
-The choice for us seemed to be between a set of tuples and a set of frozensets.
-It was not easy to define which of the two was better in terms of speed and efficiency but we 
-ended up choosing the frozensets solution.
+An important decision was selecting the data structure to store stream edges read from the input file.
+We considered using a set of tuples or a set of frozensets. It was not obvious which option would be
+more efficient, but we chose frozensets because the algorithm targets undirected graphs: with no
+direction, storing a tuple for each orientation would require two entries per edge, which is
+inefficient in memory. In addition, since the Base and Improved algorithms do not support edge
+deletion, using a set of frozensets is a natural choice.
 
-Since this algorithm is explicitly meant for undirected graphs
-there was no real reason in using tuples as without the direction 
-we would have to store two tuples for each edge (definitely not the best in terms of memory consumption).
-Considering also that both the Base and the Improved algorithm doesn't support
-edge deletion, using a set of frozensets was the best choice in our opinion.
-
-We also decided to keep track of the neighbours for each edge. This is maintained through a \textit{defaultdict[int, set[int]]}.
-It is essential since it helps us to speed up the process when processing new esges of the graph
-contained in the data stream.
-
+We also keep track of neighbors for each vertex using a \textit{defaultdict[int, set[int]]}. This
+structure is essential because it speeds up processing of incoming edges from the data stream.
 
 
 
@@ -77,11 +68,11 @@ and uses the Bernoulli random variable and the random.choice() method.
         return False, None
 \end{verbatim}
 
-This function is returning a Tuple made of a boolean (True if the edge has to be included) and 
-the Edge to be discarded from the sample (None in case the new Edge is not added to the sample).
+This function returns a tuple consisting of a boolean (True if the edge should be included) and
+the Edge to be discarded from the sample (or None if the new edge is not added).
 
 \subsection{TriestBase}
-I will add below the pseudocode for this algorithm which is also a base for TriestImproved.
+Below is the pseudocode for this algorithm, which serves as the basis for Triest-Improved.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{imgs/pseudocodeBase.png}
@@ -89,12 +80,12 @@ I will add below the pseudocode for this algorithm which is also a base for Trie
     \label{fig:triest_pseudocode}
 \end{figure}
 
-The gloabl counter is t and the local counters tau are stored as \textit{defaultdict[int, float]}.
+The global counter is \(t\) and the local counters (\(\tau\)) are stored as \textit{defaultdict[int, float]}.
 
-The first part of the pseudocode is implemented inside the function \textbf{run} and simply includes the
-insertion of all the edges mined from the input file.
+The first part of the pseudocode is implemented in the function \textbf{run}, which inserts all edges
+read from the input file.
 
-I also added as \textit{@property} of the class the mathematical constant xi defined as 
+I also added the mathematical constant \textit{xi} as a \textit{@property} of the class, defined as 
 \begin{verbatim}
      @property
     def xi(self) -> float:
@@ -107,13 +98,13 @@ I also added as \textit{@property} of the class the mathematical constant xi def
         )
 \end{verbatim}
 
-The function run() returns the counter of gloabl triangles computed as 
+The function \texttt{run()} returns the estimated number of global triangles, computed as 
 \begin{verbatim}
     return self.xi * self.tau
 \end{verbatim}
 
-I will also describe here the function \textbf{\_update\_counters} 
-which is common for the base and improved implementation.
+I also describe the function \textbf{\_update\_counters}, which is common to both the base and
+improved implementations.
 
 \begin{verbatim}
     def _update_counters(self, e: Edge, inc: float):
@@ -131,76 +122,70 @@ which is common for the base and improved implementation.
             self.tau_vertices[v] += inc
 \end{verbatim}
 
-As it can be easily seen we are simply modifying and updating the counters for global 
-and local triangle. The only interesting thing is \textbf{\_common\_neighbours} to which calculates 
-the common neighbourhood between the two nodes of an inserted edge.
+As shown, we update the global and local triangle counters. The only nontrivial part is
+	extbf{\_common\_neighbours}, which computes the common neighborhood of the two nodes of an
+inserted edge.
 
 
 \subsection{Triest-Improved}
-The class Triest-Improved inherits many methods from the basic class even though some things are 
-a bit different.
-First of all the global estimated is computed as 
+Triest-Improved inherits many methods from the base class, although some behaviors differ.
+First, the global estimate is computed as 
 \begin{verbatim}
     return float(self.tau)
 \end{verbatim}
 
-We also compute another constant called \textit{eta} computed as shown in the code snippet below.
+We also compute another constant called \textit{eta}, as shown below.
 \begin{verbatim}
     return max(1.0, (self.t - 1) * (self.t - 2) / (self.M * (self.M - 1)))
 \end{verbatim}
 
-The other main differences are related to the processing of each incoming edge.
-We have 3 main differences;
+The main differences in processing each incoming edge are:
 \begin{itemize}
-    \item UpdateCounters is called unconditionally for each element on the stream, before the algorithm decides whether
-    or not to insert the edge into S
-    \item trièst-impr never decrements the counters when an edge
-    is removed from S
-    \item UpdateCounters performs a weighted increase of the
-    counters using \textit{eta} as weight
+    \item \textbf{UpdateCounters} is called unconditionally for each stream element, before the
+    algorithm decides whether to insert the edge into \(S\).
+    \item Triest-Improved never decrements the counters when an edge is removed from \(S\).
+    \item \textbf{UpdateCounters} performs a weighted increase of the counters using \textit{eta} as
+    the weight.
 \end{itemize}
 
 \subsection{Testing}
-We developed a test both for the basic and the improved algorithm.
-In both cases the estimate is not very different from the real value contained in the description
-of the dataset. 
-Looking at the amount of time needed to produce the result we can easily say that the 
-algorithm is very fast since it finishes in less than two seconds. 
-In one of our initial implementation, that didn't include the storage of neighbourhoods of 
-nodes, the time needed was 20 seconds.
-This implies that we definitely needed that data structures improvement.
+We developed tests for both the base and improved algorithms. Using a memory size of
+\(M = 10000\) (this value can be changed), the estimates are close to the true value reported
+for the dataset (error less than 5\%). However, there is noticeable variance between estimates,
+especially for the base algorithm. In the improved-algorithm test we include a plot showing
+estimates obtained for different values of \(M\) (fractions or multiples of the initial \(M\)).
+
+Regarding runtime, the algorithm is fast in our implementation: it finishes in less than two
+seconds for the tested parameters. In an initial implementation that did not store node
+neighborhoods, the runtime was about 20 seconds. This demonstrates that the chosen data
+structure for neighbors significantly improves performance.
 
 
 \section{Extra questions}
 
 \paragraph{What were the challenges you faced when implementing the algorithm?}
-The algorithm was explained very well, especially in terms of pseudocode. Moreover, the procedure was quite straightforward 
-and there were only minor differences between the Base and the Improved version. We found a bit hard to correctly identify 
-the data structures to correctly store the set of edges of the graph. We describe our choice in the previous section
-related to the methods we used.
+The paper explains the algorithm clearly, especially via pseudocode, and the procedure was mostly
+straightforward. The primary challenge was choosing appropriate data structures to store the
+graph edges; we discussed and motivated our choice in the Methods section.
 
 
 \paragraph{Can the algorithm be easily parallelized?}
-We believe that introducing data parallelism in the algorithm doesn't really make a 
-sense since the data is flowing into the algorithm through a data stream and that the operations 
-on the counters are blocking.
-Moreover, the operations on the counters rely on the current state of the sampleset, which 
-can be modified dynamically. 
+Introducing data parallelism is not straightforward because the data arrives as a stream and
+updates to the counters depend on the current state of the sample set, which can be modified
+dynamically. These dependencies make simple parallelization challenging.
 
 \paragraph{Does the algorithm work for unbounded graph streams?}
-The algorithm works on data streams, that are by definition unbounded. In addition, it can be queried
-anytime and it gives you the current estimation for the number of global triangles.
-As visible in the experiments, the algorithm only needs the size of the sampleset, a counter of the triangles
-and the number of elements of the stream already stream.
+Yes. The algorithm is designed for data streams (which are, by definition, unbounded). It can be
+queried at any time to provide the current estimate of the number of global triangles. The
+algorithm only needs the sample set, a triangle counter, and the number of processed stream
+elements to compute the estimate.
 
 \paragraph{Does the algorithm support edge deletions?}
-At least considering only the algorithms that we implemented (TriestBase and TriestImrpoved) we have
-no real support for edge deletion. This is is a way a limit of the algorithms.
-Said that, in the paper that we were given there is also a description of \textit{Triest-FD} which is 
-a further improvement that considers also a fully-dynamical stream in which we have both edge insertion and edge deletion.
-\textbf{Triest-FD} is built upon the concept of Random Pairing (RP) by keeping track of the 
-edges deleted from the sampleset due to deletion in the stream and the overall number of deletions. 
-This information influences the insertion of a new edge in the sampleset 
-and the improved formula for the estimation of the number of triangles.
+The implementations we developed (Triest-Base and Triest-Improved) do not support edge deletions;
+this is a limitation. The paper also describes \textit{Triest-FD}, an extension that handles
+fully-dynamic streams with both insertions and deletions. Triest-FD uses Random Pairing (RP),
+keeping track of edges deleted from the sample and the total number of deletions. This information
+affects whether new edges are inserted into the sample set and yields an improved estimation
+formula for the number of triangles.
 
 \end{document}
