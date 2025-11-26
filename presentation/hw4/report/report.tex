@@ -4,7 +4,7 @@
 \usepackage{graphicx}
 \usepackage{url}
 \usepackage{listings}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{float} % provides [H] placement to pin floats
 \usepackage{placeins} % provides \FloatBarrier to prevent floats from passing barriers
 \usepackage{booktabs} % for professional-looking tables
@@ -98,7 +98,33 @@ Let's plot the clusters for $k=4$.
 \label{fig:example1_graph_structure_K_4}
 \end{figure}
 
-As we can see the clusters are quite good, the nodes are well separated and the four clusters are very distinct.
+Let's now take a look at the goodness of the clusters.
+We will compute the inter-cluster edges count, the intra-cluster edges count, the expansion ratio and the conductance for different values of $k$ and see if we actually did find the optimal number of clusters.
+
+Table~\ref{tab:cluster_goodness} shows the cluster quality metrics for different values of $k$. The best results are achieved when $k=4$, which matches our earlier analysis based on eigenvalue gaps. For $k=4$, we have zero inter-cluster edges and all edges are intra-cluster, resulting in perfect expansion ratio and conductance values of 0.00.
+
+\begin{table}[H]
+\centering
+\caption{Cluster quality metrics for different values of $k$}
+\label{tab:cluster_goodness}
+\begin{tabular}{ccccc}
+\toprule
+$k$ & Inter-edges & Intra-edges & expansion ratio & conductance \\
+\midrule
+2 & 0 & 923 & 0.00 & 0.00 \\
+3 & 0 & 923 & 0.00 & 0.00 \\
+\rowcolor{gray!30}
+4 & 0 & 923 & 0.00 & 0.00 \\
+5 & 12 & 911 & 0.71 & 0.41 \\
+6 & 35 & 888 & 0.71 & 0.32 \\
+7 & 126 & 797 & 0.71 & 0.50 \\
+8 & 163 & 760 & 0.93 & 0.48 \\
+9 & 191 & 732 & 1.61 & 0.62 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
 
 Let's now take a look at the example 2 graph.
 
@@ -138,7 +164,29 @@ If we plot the clusters for $k=2$ we get the following result:
 \label{fig:example2_graph_structure_K_2}
 \end{figure}
 
-Also in this case the clusters are quite good, the nodes are well separated and the two clusters are very distinct.
+Let's now take a look at the goodness of the clusters for example 2.
+Table~\ref{tab:cluster_goodness2} shows the cluster quality metrics for different values of $k$. The best results are achieved when $k=2$, which matches our earlier analysis based on eigenvalue gaps. For $k=2$, we have the lowest number of inter-cluster edges (113) and the highest number of intra-cluster edges (1096), with the best expansion ratio and conductance values.
+
+\begin{table}[H]
+\centering
+\caption{Cluster quality metrics for different values of $k$ (example 2)}
+\label{tab:cluster_goodness2}
+\begin{tabular}{ccccc}
+\toprule
+$k$ & Inter-edges & Intra-edges & expansion ratio & conductance \\
+\midrule
+\rowcolor{gray!30}
+2 & 113 & 1096 & 0.23 & 0.19 \\
+3 & 355 & 854 & 1.80 & 0.64 \\
+4 & 569 & 640 & 2.09 & 0.68 \\
+5 & 644 & 565 & 3.90 & 0.80 \\
+6 & 704 & 505 & 5.08 & 0.84 \\
+7 & 749 & 460 & 18.40 & 0.95 \\
+8 & 825 & 384 & 7.53 & 0.88 \\
+9 & 844 & 365 & 10.31 & 0.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Results}
 

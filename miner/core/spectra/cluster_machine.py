@@ -4,7 +4,7 @@ from scipy.sparse.linalg import eigsh
 from miner.decorators.timer import timer
 from sklearn.cluster import KMeans
 import numpy as np
-from miner.core.spectra.model import EighResult
+from miner.core.spectra.model import EighResult, ClusterAnalysisResult
 
 
 class ClusterMachine:
@@ -147,3 +147,117 @@ class ClusterMachine:
         self.latest_clusters = clusters
 
         return self.latest_clusters
+
+    # external connectivitiy
+    def get_inter_cluster_edges_count(self, cluster_id: int) -> int:
+        # Get edges from a specific cluster to other clusters
+        inter_cluster_edges = 0
+        cluster_nodes = np.where(self.latest_clusters == cluster_id)[0]
+        for node in cluster_nodes:
+            # Get neighbors of this node
+            neighbors = self.graph[node].indices
+            for neighbor in neighbors:
+                if self.latest_clusters[neighbor] != cluster_id:
+                    inter_cluster_edges += 1
+        return inter_cluster_edges
+
+    def get_total_inter_cluster_edges_count(self) -> int:
+        # Get total inter-cluster edges (count each edge once)
+        inter_cluster_edges = 0
+        num_nodes = self.latest_clusters.shape[0]
+        for node in range(num_nodes):
+            neighbors = self.graph[node].indices
+            for neighbor in neighbors:
+                # Only count edge once (when node < neighbor)
+                if (
+                    neighbor > node
+                    and self.latest_clusters[node] != self.latest_clusters[neighbor]
+                ):
+                    inter_cluster_edges += 1
+        return inter_cluster_edges
+
+    def get_expansion_ratio(self) -> ClusterAnalysisResult:
+        expansion_ratio: dict[str, float] = {}
+        unique_clusters = np.unique(self.latest_clusters)
+        for cluster_id in unique_clusters:
+            inter_edges = self.get_inter_cluster_edges_count(int(cluster_id))
+            intra_edges = self.get_intra_cluster_edges_count(int(cluster_id))
+            cluster_key = str(int(cluster_id))
+            if intra_edges > 0:
+                expansion_ratio[cluster_key] = inter_edges / intra_edges
+            else:
+                expansion_ratio[cluster_key] = float("inf") if inter_edges > 0 else 0.0
+        return ClusterAnalysisResult(data=expansion_ratio)
+
+    def get_conductance(self) -> ClusterAnalysisResult:
+        # Fraction of total edge volume that points outside the cluster
+        conductance: dict[str, float] = {}
+        unique_clusters = np.unique(self.latest_clusters)
+        for cluster_id in unique_clusters:
+            inter_edges = self.get_inter_cluster_edges_count(int(cluster_id))
+            intra_edges = self.get_intra_cluster_edges_count(int(cluster_id))
+            total_cluster_edges = inter_edges + intra_edges
+            cluster_key = str(int(cluster_id))
+            if total_cluster_edges > 0:
+                conductance[cluster_key] = inter_edges / total_cluster_edges
+            else:
+                conductance[cluster_key] = 0.0
+        return ClusterAnalysisResult(data=conductance)
+
+    def get_modularity(self) -> dict[int, float]:
+        # compute modularity matrix
+        modularity_matrix: np.ndarray = np.zeros(
+            (len(self.latest_clusters), len(self.latest_clusters))
+        )
+
+        # B_ij = A_ij - (d_i * d_j) / 2m
+        for i in range(len(self.latest_clusters)):
+            for j in range(len(self.latest_clusters)):
+                B_ij = self.graph[i, j] - (
+                    self.graph.sum(axis=1)[i] * self.graph.sum(axis=1)[j]
+                ) / (2 * self.graph.sum())
+                modularity_matrix[i, j] = B_ij
+
+        # Q = 1 / 4m (... TODO finish this)
+        pass
+
+    # internal connectivitiy
+    def get_intra_cluster_edges_count(self, cluster_id: int) -> int:
+        # Get edges within a specific cluster
+        cluster_nodes = np.where(self.latest_clusters == cluster_id)[0]
+        intra_cluster_edges = 0
+        for node in cluster_nodes:
+            neighbors = self.graph[node].indices
+            for neighbor in neighbors:
+                # Only count edge once (when node < neighbor)
+                if neighbor > node and self.latest_clusters[neighbor] == cluster_id:
+                    intra_cluster_edges += 1
+        return intra_cluster_edges
+
+    def get_total_intra_cluster_edges_count(
+        self, normalized: bool = False
+    ) -> dict[int, int]:
+        # Get edges for all clusters
+        cluster_edges_count: dict[int, int] = {}
+        unique_clusters = np.unique(self.latest_clusters)
+        for cluster_id in unique_clusters:
+            cluster_nodes = np.where(self.latest_clusters == cluster_id)[0]
+            intra_cluster_edges = 0
+            for node in cluster_nodes:
+                neighbors = self.graph[node].indices
+                for neighbor in neighbors:
+                    # Only count edge once (when node < neighbor)
+                    if neighbor > node and self.latest_clusters[neighbor] == cluster_id:
+                        intra_cluster_edges += 1
+            cluster_edges_count[int(cluster_id)] = intra_cluster_edges
+
+        if normalized:
+            total_edges = self.graph.nnz // 2  # Divide by 2 since graph is undirected
+            if total_edges > 0:
+                return {k: v / total_edges for k, v in cluster_edges_count.items()}
+            else:
+                return cluster_edges_count
+        return cluster_edges_count
+
+    def get_triangle_participation_ratio(self) -> dict[int, float]:
+        pass  # TODO implement this
