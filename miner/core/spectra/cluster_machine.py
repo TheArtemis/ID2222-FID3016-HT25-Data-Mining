@@ -273,7 +273,7 @@ class ClusterMachine:
                 ) / (2 * self.graph.sum())
                 modularity_matrix[i, j] = B_ij
 
-        # Q = 1 / 4m (... TODO finish this)
+        # Q = 1 / 4m
         pass
 
     # internal connectivitiy
@@ -315,4 +315,4 @@ class ClusterMachine:
         return cluster_edges_count
 
     def get_triangle_participation_ratio(self) -> dict[int, float]:
-        pass  # TODO implement this
+        pass
