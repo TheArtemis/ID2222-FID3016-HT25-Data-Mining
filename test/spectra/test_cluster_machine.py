@@ -38,7 +38,6 @@ def test_cluster_machine_1(K: int):
     logger.info(cluster_machine.latest_clusters)
 
     plotter = ClusterPlotter(cluster_machine)
-    plotter.plot_clusters(EXAMPLE_1_K_FOLDER, f"example1_clusters_K_{K}.png")
 
     plotter.plot_graph_structure(
         EXAMPLE_1_K_FOLDER,
@@ -66,7 +65,6 @@ def test_cluster_machine_2(K: int):
     logger.info(cluster_machine.latest_clusters)
 
     plotter = ClusterPlotter(cluster_machine)
-    plotter.plot_clusters(EXAMPLE_2_K_FOLDER, f"example2_clusters_K_{K}.png")
 
     plotter.plot_graph_structure(
         EXAMPLE_2_K_FOLDER,

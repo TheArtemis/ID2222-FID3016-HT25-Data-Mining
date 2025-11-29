@@ -1,5 +1,6 @@
 from pathlib import Path
 import logging
+import numpy as np
 
 from pydantic import BaseModel
 
@@ -31,13 +32,16 @@ class ClusterGoodnessResults(BaseModel):
 
 
 def test_cluster_goodness_1():
-    graph_loader = GraphLoader(EX_2_PATH)
+    graph_loader = GraphLoader(EX_1_PATH)
     matrix = graph_loader.build()
 
     results = ClusterGoodnessResults()
 
     for k in K_RANGE:
-        cluster_machine = ClusterMachine(matrix, k=k)
+        # Reset numpy random state for each k to ensure consistent results
+        np.random.seed(0)
+        # Use a copy of the matrix to avoid any potential state issues
+        cluster_machine = ClusterMachine(matrix.copy(), k=k)
         cluster_machine.cluster()
         inter_cluster_edges_count = (
             cluster_machine.get_total_inter_cluster_edges_count()

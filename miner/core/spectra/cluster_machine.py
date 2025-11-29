@@ -71,7 +71,16 @@ class ClusterMachine:
         # If k is None, compute all eigenvalues (up to n-1 for n×n matrix)
 
         # Compute the k largest eigenvalues and eigenvectors
-        eigenvalues, eigenvectors = eigsh(self.laplacian, k=k, which="LA")
+        # Use fixed random seed for deterministic results
+        np.random.seed(0)
+        eigenvalues, eigenvectors = eigsh(
+            self.laplacian,
+            k=k,
+            which="LA",
+            v0=np.random.RandomState(0).randn(
+                self.laplacian.shape[0]
+            ),  # Fixed initial vector
+        )
 
         # Sort the eigenvalues and eigenvectors in descending order
         # (x1, x2,..., xk)
@@ -131,10 +140,56 @@ class ClusterMachine:
         """Setter for fiedler_vector property."""
         self._fiedler_vector = value
 
+    def _get_deterministic_initial_centroids(self, Y: np.ndarray) -> np.ndarray:
+        """
+        Generate deterministic initial centroids for k-means clustering.
+
+        Selects points at regular intervals in the data to ensure reproducible
+        initialization regardless of random state.
+
+        Args:
+            Y: The normalized eigenvector matrix (n_samples, n_features)
+
+        Returns:
+            Array of initial centroids (k, n_features)
+        """
+        n_samples = Y.shape[0]
+        if n_samples >= self.k:
+            # Select indices at regular intervals
+            indices = np.linspace(0, n_samples - 1, self.k, dtype=int)
+            init_centroids = Y[indices].copy()
+        else:
+            # If we have fewer samples than clusters, use all samples and pad
+            init_centroids = Y.copy()
+            # Pad with first sample repeated if needed (shouldn't happen in practice)
+            while init_centroids.shape[0] < self.k:
+                init_centroids = np.vstack([init_centroids, Y[0:1]])
+
+        return init_centroids
+
     @timer()
     def compute_kmeans(self) -> np.ndarray:
-        kmeans = KMeans(n_clusters=self.k, random_state=0).fit(self.Y())
-        return kmeans.predict(self.Y())
+        """
+        Perform k-means clustering on the normalized eigenvector matrix.
+
+        Uses deterministic initialization to ensure reproducible results.
+
+        Returns:
+            Cluster assignments for each node (n_samples,)
+        """
+        Y = self.Y()
+        init_centroids = self._get_deterministic_initial_centroids(Y)
+
+        kmeans = KMeans(
+            n_clusters=self.k,
+            random_state=0,
+            n_init=1,  # Single initialization for determinism
+            init=init_centroids,  # Use fixed initial centroids
+            max_iter=300,  # Explicit max iterations
+            algorithm="lloyd",  # Explicit algorithm
+            tol=1e-4,  # Explicit tolerance
+        ).fit(Y)
+        return kmeans.predict(Y)
 
     def cluster(self):
         self.logger.debug("Starting clustering process")
