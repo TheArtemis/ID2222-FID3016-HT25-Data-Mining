@@ -8,7 +8,12 @@
 \usepackage{float} % provides [H] placement to pin floats
 \usepackage{placeins} % provides \FloatBarrier to prevent floats from passing barriers
 \usepackage{booktabs} % for professional-looking tables
+\usepackage{titlesec} % for customizing section headings
 
+% Customize section spacing for better visual separation
+\titlespacing*{\section}{0pt}{12pt plus 4pt minus 2pt}{8pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{10pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+\titlespacing*{\subsubsection}{0pt}{8pt plus 4pt minus 2pt}{4pt plus 2pt minus 2pt}
 
 %opening
 \title{Report 4: Graph Spectra}
@@ -22,45 +27,41 @@
 
 \section{Introduction}
 
-The goal of this homework is to implement the spectral graph clustering algorithm described in this paper~\url{https://ai.stanford.edu/~ang/papers/nips01-spectral.pdf} and use it to analyze two given graphs.
+The goal of this homework is to implement the spectral graph clustering algorithm described in this paper~\url{https://ai.stanford.edu/~ang/papers/nips01-spectral.pdf} and use it to analyze two given graphs. Spectral clustering is a powerful technique that leverages the eigenvalues and eigenvectors of the graph Laplacian matrix to identify natural clusters in the graph structure.
 
 \section{Implementation}
 
 The implementation is straightforward and can be found in the \texttt{miner/core/spectra/cluster\_machine.py} module.
 
-Given the graph represented by it's adjacency matrix, the steps to follow are:
+Given the graph represented by its adjacency matrix, the steps to follow are:
 
 \begin{enumerate}
     \item Remove loops from the graph by subtracting the diagonal of the graph from itself
     \item Build the degree matrix $D$
     \item Build the Laplacian matrix $L = D - A$
     \item Compute the eigenvalues and eigenvectors of the Laplacian matrix $L$
-    \item We will take the first $k$ eigenvectors corresponding to the $k$ larges eigenvalues to build the feature matrix $X$
-
-    \item We will then form the normalized feature matrix $Y$ to have unit length vectors for each row.
-    \item We will then cluster the data using the k-means algorithm.
+    \item Take the first $k$ eigenvectors corresponding to the $k$ largest eigenvalues to build the feature matrix $X$
+    \item Form the normalized feature matrix $Y$ by normalizing each row to have unit length
+    \item Cluster the data using the k-means algorithm
 \end{enumerate}
 
-The degree matrix $D$ is a diagonal matrix where the element $(i, i)$ is the degree of the $i$-th node, hence it just tells us how many edges are connected to the $i$-th node.
+The degree matrix $D$ is a diagonal matrix where the element $(i, i)$ is the degree of the $i$-th node, indicating how many edges are connected to that node.
 
-The Laplacian matrix $L$ is a symmetric matrix that is used to compute the eigenvalues and eigenvectors of the graph. It is defined as $L = D - A$, where $A$ is the adjacency matrix of the graph.
+The Laplacian matrix $L$ is a symmetric matrix defined as $L = D - A$, where $A$ is the adjacency matrix of the graph. It is used to compute the eigenvalues and eigenvectors of the graph structure. The idea behind the Laplacian matrix is to measure how far each node is from the other nodes. The eigenvectors of the Laplacian matrix capture the structure of the graph, with the first few eigenvectors encoding the most significant structural information about clusters.
 
-The idea behind the Laplacian matrix is to measure how far each node is from the other nodes. (... expand on this)
+Once we have the feature matrix $X$, we form the normalized feature matrix $Y$ by normalizing each row to have unit length. Finally, the k-means algorithm is applied to cluster the data into $k$ clusters based on the normalized feature vectors.
 
-Once we have the feature matrix $X$, we can form the normalized feature matrix $Y$ to have unit length vectors for each row.
+\section{Experimental Results}
 
-The k-means algorithm is used to cluster the data into $k$ clusters.
+One of the first questions we can ask is: what is the optimal number of clusters to use? To answer this question, we can check the eigenvalues of the Laplacian matrix and compare the gaps between them. The idea is that the larger the gap, the more distinct the clusters are.
 
-\section{To cluster or not to cluster}
-One of the first questions that we can ask is: what is the optimal number of clusters to use?
+The implementation of this analysis is straightforward and can be found in the \texttt{miner/core/spectra/gap\_finder.py} module.
 
-To answer this question we can check the eigenvalues of the Laplacian matrix and compare the gaps between them. The idea is that the larger the gap, the more distinct the clusters are.
+\subsection{Example 1: Optimal Cluster Selection}
 
-The implementation of this is straightforward and can be found in the \texttt{miner/core/spectra/gap\_finder.py} module.
+Let's take a look at the eigenvalues of the Laplacian matrix for example 1.
 
-Let's take a look at the eigenvalues of the Laplacian matrix for the example 1 graph.
-
-Table~\ref{tab:gaps} shows the gaps between consecutive eigenvalues of the Laplacian matrix. The largest gap is between $\lambda_4$ and $\lambda_5$ with a value of 0.1942, suggesting that $k=4$ might be an appropriate number of clusters.
+Table~\ref{tab:gaps} shows the gaps between consecutive eigenvalues of the Laplacian matrix. The largest gap is between $\lambda_4$ and $\lambda_5$ with a value of 0.1942, which suggests that $k=4$ might be an appropriate number of clusters.
 
 \begin{table}[H]
 \centering
@@ -88,9 +89,7 @@ $\lambda_{14}$ -- $\lambda_{15}$ & 0.0275 \\
 \end{tabular}
 \end{table}
 
-The largest gap is between $\lambda_4$ and $\lambda_5$ with a value of 0.1942, suggesting that $k=4$ might be an appropriate number of clusters.
-
-Let's plot the clusters for $k=4$.
+Let's plot the clusters for $k=4$ to visualize the results.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{../imgs/example1/K_4/example1_graph_structure_K_4.png}
@@ -98,10 +97,11 @@ Let's plot the clusters for $k=4$.
 \label{fig:example1_graph_structure_K_4}
 \end{figure}
 
-Let's now take a look at the goodness of the clusters.
-We will compute the inter-cluster edges count, the intra-cluster edges count, the expansion ratio and the conductance for different values of $k$ and see if we actually did find the optimal number of clusters.
+\subsubsection{Cluster Quality Evaluation}
 
-Table~\ref{tab:cluster_goodness} shows the cluster quality metrics for different values of $k$. The best results are achieved when $k=4$, which matches our earlier analysis based on eigenvalue gaps. For $k=4$, we have zero inter-cluster edges and all edges are intra-cluster, resulting in perfect expansion ratio and conductance values of 0.00.
+To validate our choice of $k=4$, we compute the inter-cluster edges count, the intra-cluster edges count, the expansion ratio, and the conductance for different values of $k$ to verify that we found the optimal number of clusters.
+
+Table~\ref{tab:cluster_goodness} shows the cluster quality metrics for different values of $k$. The best results are achieved when $k=4$, which matches our earlier analysis based on eigenvalue gaps. For $k=4$, we have zero inter-cluster edges and all edges are intra-cluster, resulting in perfect expansion ratio and conductance values of 0.00, indicating ideal cluster separation.
 
 \begin{table}[H]
 \centering
@@ -126,9 +126,11 @@ $k$ & Inter-edges & Intra-edges & expansion ratio & conductance \\
 
 
 
-Let's now take a look at the example 2 graph.
+\subsection{Example 2: Optimal Cluster Selection}
 
-Table~\ref{tab:gaps2} shows the gaps between consecutive eigenvalues of the Laplacian matrix for example 2. The largest gap is between $\lambda_2$ and $\lambda_3$ with a value of 0.5451, suggesting that $k=2$ might be an appropriate number of clusters.
+Now let's analyze example 2.
+
+Table~\ref{tab:gaps2} shows the gaps between consecutive eigenvalues of the Laplacian matrix for example 2. The largest gap is between $\lambda_2$ and $\lambda_3$ with a value of 0.5451, which suggests that $k=2$ might be an appropriate number of clusters.
 
 \begin{table}[H]
 \centering
@@ -156,7 +158,7 @@ $\lambda_{14}$ -- $\lambda_{15}$ & 0.0033 \\
 \end{tabular}
 \end{table}
 
-If we plot the clusters for $k=2$ we get the following result:
+Plotting the clusters for $k=2$ yields the following result:
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{../imgs/example2/K_2/example2_graph_structure_K_2.png}
@@ -164,7 +166,8 @@ If we plot the clusters for $k=2$ we get the following result:
 \label{fig:example2_graph_structure_K_2}
 \end{figure}
 
-Let's now take a look at the goodness of the clusters for example 2.
+\subsubsection{Cluster Quality Evaluation}
+
 Table~\ref{tab:cluster_goodness2} shows the cluster quality metrics for different values of $k$. The best results are achieved when $k=2$, which matches our earlier analysis based on eigenvalue gaps. For $k=2$, we have the lowest number of inter-cluster edges (113) and the highest number of intra-cluster edges (1096), with the best expansion ratio and conductance values.
 
 \begin{table}[H]
@@ -188,9 +191,21 @@ $k$ & Inter-edges & Intra-edges & expansion ratio & conductance \\
 \end{tabular}
 \end{table}
 
-\section{Results}
+\subsubsection{Fiedler Vector Visualization}
 
+To better understand the cluster separation, let's examine the Fiedler vector for example 2.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{../imgs/example2/K_2/example2_fiedler_vector_K_2.png}
+\caption{Fiedler vector for $k=2$}
+\label{fig:example2_fiedler_vector_K_2}
+\end{figure}
+
+From the Fiedler vector, we can see a clear separation between the two clusters. The steeper the slope, the more distinct the cluster boundaries are.
 
 \section{Conclusion}
 
+In conclusion, we have successfully implemented and applied the spectral graph clustering algorithm to analyze two different graphs. Through eigenvalue gap analysis, we determined the optimal number of clusters for each graph: $k=4$ for example 1 and $k=2$ for example 2. 
+
+The cluster quality metrics (inter-cluster edges, intra-cluster edges, expansion ratio, and conductance) confirmed our choices, with example 1 achieving perfect separation (zero inter-cluster edges) and example 2 achieving the best balance among all tested values of $k$. The visualization of the Fiedler vector further validated the cluster separation, demonstrating the effectiveness of spectral clustering in identifying natural graph communities.
 \end{document}

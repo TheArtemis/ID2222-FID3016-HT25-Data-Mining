@@ -242,12 +242,10 @@ class ClusterPlotter:
         self,
         output_dir: Path,
         filename: str = "fiedler_vector.png",
-        figsize: tuple[int, int] = (14, 6),
+        figsize: tuple[int, int] = (10, 6),
     ):
         """
-        Plot the Fiedler vector in multiple ways:
-        1. Sorted values of the Fiedler vector
-        2. Fiedler vector values on the graph structure (if graph is not too large)
+        Plot the sorted Fiedler vector values as a line plot.
 
         Args:
             output_dir: Directory where the plot will be saved
@@ -257,25 +255,17 @@ class ClusterPlotter:
         # Get the Fiedler vector (this will compute it if not already computed)
         fiedler_vec = self.cluster_machine.fiedler_vector
 
-        # Create a figure with subplots
-        fig, axes = plt.subplots(1, 2, figsize=figsize)
+        # Create a figure
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        # Plot 1: Sorted Fiedler vector values
+        # Plot sorted Fiedler vector values
         sorted_values = np.sort(fiedler_vec)
-        axes[0].plot(sorted_values, "b-", linewidth=1.5)
-        axes[0].axhline(y=0, color="r", linestyle="--", alpha=0.5, linewidth=1)
-        axes[0].set_xlabel("Node Index (sorted by Fiedler vector value)")
-        axes[0].set_ylabel("Fiedler Vector Value")
-        axes[0].set_title("Sorted Fiedler Vector Values")
-        axes[0].grid(True, alpha=0.3)
-
-        # Plot 2: Fiedler vector values as a bar plot (sorted)
-        axes[1].bar(range(len(sorted_values)), sorted_values, width=0.8, alpha=0.7)
-        axes[1].axhline(y=0, color="r", linestyle="--", alpha=0.5, linewidth=1)
-        axes[1].set_xlabel("Node Index (sorted by Fiedler vector value)")
-        axes[1].set_ylabel("Fiedler Vector Value")
-        axes[1].set_title("Fiedler Vector Values (Bar Plot)")
-        axes[1].grid(True, alpha=0.3, axis="y")
+        ax.plot(sorted_values, "b-", linewidth=1.5)
+        ax.axhline(y=0, color="r", linestyle="--", alpha=0.5, linewidth=1)
+        ax.set_xlabel("Node Index (sorted by Fiedler vector value)")
+        ax.set_ylabel("Fiedler Vector Value")
+        ax.set_title("Sorted Fiedler Vector Values")
+        ax.grid(True, alpha=0.3)
 
         plt.tight_layout()
         plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
