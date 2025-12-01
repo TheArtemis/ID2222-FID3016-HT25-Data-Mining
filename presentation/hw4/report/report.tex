@@ -39,7 +39,7 @@ Given the graph represented by its adjacency matrix, the steps to follow are:
 \begin{enumerate}
     \item Remove loops from the graph by subtracting the diagonal of the graph from itself
     \item Build the degree matrix $D$
-    \item Build the Laplacian matrix $L = D - A$
+    \item Build the Laplacian matrix $L = D^{-1/2} A D^{-1/2}$
     \item Compute the eigenvalues and eigenvectors of the Laplacian matrix $L$
     \item Take the first $k$ eigenvectors corresponding to the $k$ largest eigenvalues to build the feature matrix $X$
     \item Form the normalized feature matrix $Y$ by normalizing each row to have unit length
@@ -48,7 +48,7 @@ Given the graph represented by its adjacency matrix, the steps to follow are:
 
 The degree matrix $D$ is a diagonal matrix where the element $(i, i)$ is the degree of the $i$-th node, indicating how many edges are connected to that node.
 
-The Laplacian matrix $L$ is a symmetric matrix defined as $L = D - A$, where $A$ is the adjacency matrix of the graph. It is used to compute the eigenvalues and eigenvectors of the graph structure. The idea behind the Laplacian matrix is to measure how far each node is from the other nodes. The eigenvectors of the Laplacian matrix capture the structure of the graph, with the first few eigenvectors encoding the most significant structural information about clusters.
+The Laplacian matrix $L$ is a symmetric matrix defined as $L = D^{-1/2} A D^{-1/2}$, where $A$ is the adjacency matrix of the graph and $D$ is the degree matrix. This is the normalized Laplacian matrix. It is used to compute the eigenvalues and eigenvectors of the graph structure. The idea behind the Laplacian matrix is to measure how far each node is from the other nodes. The eigenvectors of the Laplacian matrix capture the structure of the graph, with the first few eigenvectors encoding the most significant structural information about clusters.
 
 Once we have the feature matrix $X$, we form the normalized feature matrix $Y$ by normalizing each row to have unit length. Finally, the k-means algorithm is applied to cluster the data into $k$ clusters based on the normalized feature vectors.
 
