@@ -372,3 +372,150 @@ class ClusterPlotter:
         plt.tight_layout()
         plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
         plt.close()
+
+    def plot_spectral_embedding(
+        self,
+        output_dir: Path,
+        filename: str = "spectral_embedding.png",
+        figsize: tuple[int, int] = (10, 8),
+        custom_colors: dict[int, str] | list[str] | None = None,
+        cmap: str | None = None,
+    ):
+        """
+        Plot the spectral embedding in 2D space using the 2nd and 3rd eigenvectors.
+
+        This visualization shows how points become distinct in the reduced space.
+        The plot uses:
+        - X-axis: 2nd Eigenvector (Fiedler vector)
+        - Y-axis: 3rd Eigenvector
+
+        Points are colored according to their assigned cluster labels.
+
+        Args:
+            output_dir: Directory where the plot will be saved
+            filename: Name of the output file
+            figsize: Figure size (width, height)
+            custom_colors: Custom colors for clusters. Can be:
+                - dict mapping cluster ID to color (e.g., {0: 'red', 1: 'blue'})
+                - list of colors (one per cluster in order)
+            cmap: Colormap name to use (e.g., 'tab10', 'Set3', 'viridis').
+                  If custom_colors is provided, this is ignored.
+        """
+        if self.cluster_machine.latest_clusters is None:
+            self.logger.error(
+                "Before plotting, you need to cluster the data first: run .cluster() first"
+            )
+            return
+
+        # Ensure eigenvectors are computed
+        if self.cluster_machine.eigenvectors is None:
+            self.cluster_machine.compute_eigenvalues()
+
+        eigenvectors = self.cluster_machine.eigenvectors
+        clusters = self.cluster_machine.latest_clusters
+
+        # Check if we have enough eigenvectors
+        if eigenvectors.shape[1] < 3:
+            self.logger.warning(
+                f"Only {eigenvectors.shape[1]} eigenvectors available, need at least 3. "
+                "Computing more eigenvalues..."
+            )
+            # Compute at least 3 eigenvectors
+            k_needed = max(3, self.cluster_machine.k)
+            self.cluster_machine.compute_eigenvalues(k=k_needed)
+            eigenvectors = self.cluster_machine.eigenvectors
+
+        if eigenvectors.shape[1] < 3:
+            self.logger.error(
+                "Cannot plot spectral embedding: need at least 3 eigenvectors"
+            )
+            return
+
+        # Extract 2nd and 3rd eigenvectors (indices 1 and 2, since 0-indexed)
+        # Note: eigenvectors are sorted in descending order by eigenvalue
+        # Index 0 is typically the stationary distribution (constant vector for normalized Laplacian)
+        # Index 1 is the Fiedler vector (2nd eigenvector)
+        # Index 2 is the 3rd eigenvector
+        eigenvector_2 = eigenvectors[:, 1]  # Fiedler vector
+        eigenvector_3 = eigenvectors[:, 2]  # 3rd eigenvector
+
+        # Create the plot
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+        # Get unique clusters
+        unique_clusters = np.unique(clusters)
+
+        # Prepare colors - create a mapping from cluster_id to color
+        cluster_id_to_color = {}
+        if custom_colors is None:
+            # Use default color palette
+            palette_dict = get_palette_dict(len(unique_clusters))
+            for cluster_id in unique_clusters:
+                cluster_id_to_color[int(cluster_id)] = palette_dict.get(
+                    int(cluster_id), "gray"
+                )
+        elif isinstance(custom_colors, dict):
+            # Map cluster IDs to colors
+            for cluster_id in unique_clusters:
+                cluster_id_to_color[int(cluster_id)] = custom_colors.get(
+                    int(cluster_id), "gray"
+                )
+        elif isinstance(custom_colors, list):
+            # List of colors, one per cluster
+            cluster_id_to_index = {
+                int(cid): idx for idx, cid in enumerate(unique_clusters)
+            }
+            for cluster_id in unique_clusters:
+                idx = cluster_id_to_index[int(cluster_id)]
+                cluster_id_to_color[int(cluster_id)] = (
+                    custom_colors[idx] if idx < len(custom_colors) else "gray"
+                )
+        else:
+            # Fallback to default
+            palette_dict = get_palette_dict(len(unique_clusters))
+            for cluster_id in unique_clusters:
+                cluster_id_to_color[int(cluster_id)] = palette_dict.get(
+                    int(cluster_id), "gray"
+                )
+
+        # Plot points colored by cluster
+        if cmap is not None and custom_colors is None:
+            # Use colormap
+            scatter = ax.scatter(
+                eigenvector_2,
+                eigenvector_3,
+                c=clusters,
+                cmap=cmap,
+                alpha=0.6,
+                s=50,
+                edgecolors="black",
+                linewidths=0.5,
+            )
+            plt.colorbar(scatter, ax=ax, label="Cluster ID")
+        else:
+            # Use individual colors
+            for cluster_id in unique_clusters:
+                mask = clusters == cluster_id
+                color = cluster_id_to_color.get(int(cluster_id), "gray")
+                ax.scatter(
+                    eigenvector_2[mask],
+                    eigenvector_3[mask],
+                    c=color,
+                    label=f"Cluster {int(cluster_id)}",
+                    alpha=0.6,
+                    s=50,
+                    edgecolors="black",
+                    linewidths=0.5,
+                )
+            ax.legend(loc="best", fontsize=8)
+
+        ax.set_xlabel("2nd Eigenvector (Fiedler Vector)", fontsize=12)
+        ax.set_ylabel("3rd Eigenvector", fontsize=12)
+        ax.set_title("Spectral Embedding (Eigenvector 2 vs 3)", fontsize=14)
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+        plt.close()
+
+        self.logger.info(f"Spectral embedding plot saved to {output_dir / filename}")

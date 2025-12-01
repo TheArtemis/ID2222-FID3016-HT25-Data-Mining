@@ -125,7 +125,21 @@ $k$ & Inter-edges & Intra-edges & expansion ratio & conductance \\
 \end{tabular}
 \end{table}
 
+Since we have more than two clusters, let's plot the spectral embedding for $k=4$.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{../imgs/example1/K_4/example1_spectral_embedding_k_4.png}
+\caption{Spectral embedding for $k=4$}
+\label{fig:example1_spectral_embedding_k_4}
+\end{figure}
 
+\subsubsection{Spectral Embedding Interpretation}
+
+The spectral embedding visualization in Figure~\ref{fig:example1_spectral_embedding_k_4} shows how the nodes are distributed in the reduced space defined by the 2nd and 3rd eigenvectors. 
+
+One interesting observation is that the points form distinct lines (or rays) radiating from a central point, rather than round clusters. This happens because nodes in the same community have similar eigenvector values, but due to degree variations within each cluster, they scale differently, creating these linear structures. This visualization demonstrates why Step 6 of our implementation (normalizing rows to unit length) is important: when we normalize these points, the rays collapse into tight, dense points on the unit circle, making them easier for K-means to separate.
+
+The plot confirms that $k=4$ is the correct choice. The four clusters are moving in clearly different directions with very little overlap between them. The Grey cluster moves along the negative X-axis, the Blue cluster moves down the negative Y-axis, and the Orange and Yellow clusters move in positive directions at distinct angles. This clear separation in the reduced eigenvector space validates that the spectral clustering algorithm has successfully identified four distinct communities in the graph.
 
 \subsection{Example 2: Optimal Cluster Selection}
 
