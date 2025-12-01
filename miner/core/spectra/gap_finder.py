@@ -72,14 +72,8 @@ class GapFinder:
         self.logger.info(f"Analyzing modularity for k={min_k} to k={max_k}")
         
         for k in range(min_k, max_k + 1):
-            # Create a new ClusterMachine for this k value
-            # We need to ensure the graph is in the right state (no loops)
             temp_machine = ClusterMachine(self.graph, k=k)
-            
-            # Perform clustering
             clusters = temp_machine.cluster()
-            
-            # Calculate modularity
             Q = ClusterMachine.calculate_modularity(self.graph, clusters)
             modularity_scores[k] = Q
             

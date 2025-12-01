@@ -289,26 +289,19 @@ class ClusterMachine:
         if m == 0:
             return 0.0
 
-        # Convert sparse matrix to dense for efficient computation
-        # For very large graphs, this could be optimized to stay sparse
         A = (
             adjacency_matrix.toarray()
             if hasattr(adjacency_matrix, "toarray")
             else adjacency_matrix
         )
 
-        # Create cluster indicator matrix: δ(c_i, c_j) = 1 if same cluster, 0 otherwise
         cluster_matrix = (clusters[:, np.newaxis] == clusters[np.newaxis, :]).astype(
             float
         )
 
-        # Calculate modularity matrix B_ij = A_{ij} - (d_i * d_j) / (2m)
-        # Using vectorized operations for efficiency
         degree_outer = np.outer(degrees, degrees)
         B = A - degree_outer / (2.0 * m)
 
-        # Calculate Q = (1/2m) * sum_{i,j} B_ij * δ(c_i, c_j)
-        # Only sum over pairs in the same cluster (where cluster_matrix == 1)
         Q = (1.0 / (2.0 * m)) * np.sum(B * cluster_matrix)
 
         return float(Q)
