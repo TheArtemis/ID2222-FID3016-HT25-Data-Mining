@@ -259,22 +259,67 @@ class ClusterMachine:
                 conductance[cluster_key] = 0.0
         return ClusterAnalysisResult(data=conductance)
 
-    def get_modularity(self) -> dict[int, float]:
-        # compute modularity matrix
-        modularity_matrix: np.ndarray = np.zeros(
-            (len(self.latest_clusters), len(self.latest_clusters))
+    @staticmethod
+    def calculate_modularity(
+        adjacency_matrix: csr_matrix, clusters: np.ndarray
+    ) -> float:
+        """
+        Calculate the modularity Q score for a given clustering.
+
+        Formula: Q = (1/2m) * sum_{i,j} [A_{ij} - (d_i * d_j)/(2m)] * δ(c_i, c_j)
+
+        Where:
+        - A_{ij} is the adjacency matrix
+        - d_i, d_j are the degrees of nodes i and j
+        - m is the total number of edges
+        - δ(c_i, c_j) is 1 if nodes i and j are in the same cluster, 0 otherwise
+
+        Args:
+            adjacency_matrix: The graph adjacency matrix (sparse)
+            clusters: Cluster assignments for each node (n_nodes,)
+
+        Returns:
+            The modularity score (float)
+        """
+        # Calculate degrees
+        degrees = np.array(adjacency_matrix.sum(axis=1)).flatten()
+
+        # Total number of edges (divide by 2 for undirected graph)
+        m = adjacency_matrix.sum() / 2.0
+        if m == 0:
+            return 0.0
+
+        A = (
+            adjacency_matrix.toarray()
+            if hasattr(adjacency_matrix, "toarray")
+            else adjacency_matrix
         )
 
-        # B_ij = A_ij - (d_i * d_j) / 2m
-        for i in range(len(self.latest_clusters)):
-            for j in range(len(self.latest_clusters)):
-                B_ij = self.graph[i, j] - (
-                    self.graph.sum(axis=1)[i] * self.graph.sum(axis=1)[j]
-                ) / (2 * self.graph.sum())
-                modularity_matrix[i, j] = B_ij
+        cluster_matrix = (clusters[:, np.newaxis] == clusters[np.newaxis, :]).astype(
+            float
+        )
 
-        # Q = 1 / 4m
-        pass
+        degree_outer = np.outer(degrees, degrees)
+        B = A - degree_outer / (2.0 * m)
+
+        Q = (1.0 / (2.0 * m)) * np.sum(B * cluster_matrix)
+
+        return float(Q)
+
+    def get_modularity(self) -> float:
+        """
+        Calculate the modularity Q score for the current clustering.
+
+        Returns:
+            The modularity score (float)
+        """
+        if self.latest_clusters is None:
+            self.logger.error("No clusters found. Run cluster() first.")
+            return 0.0
+
+        Q = self.calculate_modularity(self.graph, self.latest_clusters)
+        self.logger.debug(f"Computed modularity Q = {Q:.6f}")
+        return Q
 
     # internal connectivitiy
     def get_intra_cluster_edges_count(self, cluster_id: int) -> int:

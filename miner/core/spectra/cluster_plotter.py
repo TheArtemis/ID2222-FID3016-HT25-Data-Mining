@@ -66,11 +66,9 @@ class ClusterPlotter:
             )
             return
 
-        # Convert sparse matrix to NetworkX graph
         graph_matrix = self.cluster_machine.graph
         G = nx.from_scipy_sparse_array(graph_matrix)
 
-        # Validate that cluster assignments match graph nodes
         if len(self.cluster_machine.latest_clusters) != G.number_of_nodes():
             self.logger.error(
                 f"Mismatch: cluster assignments ({len(self.cluster_machine.latest_clusters)}) "
@@ -78,30 +76,24 @@ class ClusterPlotter:
             )
             return
 
-        # Optionally sample nodes for large graphs
         if max_nodes is not None and G.number_of_nodes() > max_nodes:
             self.logger.warning(
                 f"Graph has {G.number_of_nodes()} nodes, sampling {max_nodes} nodes for visualization"
             )
-            # Sample nodes (prefer nodes with higher degree for better visualization)
             degrees = dict(G.degree())
             top_nodes = sorted(degrees.items(), key=lambda x: x[1], reverse=True)[
                 :max_nodes
             ]
             sampled_nodes = [node for node, _ in top_nodes]
             G = G.subgraph(sampled_nodes).copy()
-            # Map cluster colors to sampled nodes (preserve node order in subgraph)
             cluster_colors = [
                 self.cluster_machine.latest_clusters[node] for node in G.nodes()
             ]
         else:
-            # Map cluster colors to nodes in graph order
-            # NetworkX from_scipy_sparse_array preserves node indices (0, 1, 2, ...)
             cluster_colors = [
                 self.cluster_machine.latest_clusters[node] for node in G.nodes()
             ]
 
-        # Choose layout algorithm
         layout_funcs = {
             "spring": nx.spring_layout,
             "kamada_kawai": nx.kamada_kawai_layout,
@@ -127,24 +119,18 @@ class ClusterPlotter:
             )
             pos = nx.spring_layout(G, k=1, iterations=50)
 
-        # Create the plot
         plt.figure(figsize=figsize)
 
-        # Draw edges first (so nodes appear on top)
         nx.draw_networkx_edges(G, pos, alpha=0.2, width=1.5, edge_color="gray")
 
-        # Draw nodes with cluster colors
         unique_clusters = np.unique(cluster_colors)
 
-        # Use default palette if no custom colors provided
         if custom_colors is None:
             custom_colors = get_palette_dict(len(unique_clusters))
             self.logger.debug(f"Using default color palette: {custom_colors}")
 
-        # Handle custom colors
         if custom_colors is not None:
             if isinstance(custom_colors, dict):
-                # Map cluster IDs to colors
                 node_color_list = [
                     custom_colors.get(int(c), "gray") for c in cluster_colors
                 ]
@@ -152,7 +138,6 @@ class ClusterPlotter:
                     f"Using color dict, first 5 colors: {node_color_list[:5]}"
                 )
             elif isinstance(custom_colors, list):
-                # List of colors, one per cluster
                 cluster_id_to_index = {
                     int(cid): idx for idx, cid in enumerate(unique_clusters)
                 }
@@ -171,17 +156,14 @@ class ClusterPlotter:
                     alpha=0.8,
                 )
             else:
-                # Fallback to default
                 self._draw_nodes_default(
                     G, pos, cluster_colors, unique_clusters, node_size, cmap
                 )
         else:
-            # Use default colormap behavior
             self._draw_nodes_default(
                 G, pos, cluster_colors, unique_clusters, node_size, cmap
             )
 
-        # Optionally add labels for small graphs
         if G.number_of_nodes() <= 50:
             nx.draw_networkx_labels(G, pos, font_size=8)
 
@@ -195,9 +177,7 @@ class ClusterPlotter:
         self, G, pos, cluster_colors_list, unique_clusters, node_size, cmap
     ):
         """Default node drawing with color palette or colormap."""
-        # Use color palette by default, unless cmap is explicitly provided
         if cmap is None:
-            # Use default color palette
             palette_dict = get_palette_dict(len(unique_clusters))
             node_color_list = [
                 palette_dict.get(int(c), "gray") for c in cluster_colors_list
@@ -210,10 +190,7 @@ class ClusterPlotter:
                 alpha=0.8,
             )
         else:
-            # Use colormap if explicitly provided
-            # Ensure cluster IDs are properly normalized for the colormap
             if len(unique_clusters) > 1:
-                # Normalize cluster IDs to [0, 1] for proper colormap mapping
                 cluster_colors_normalized = [
                     (c - unique_clusters.min())
                     / (unique_clusters.max() - unique_clusters.min())
@@ -224,7 +201,6 @@ class ClusterPlotter:
             else:
                 cluster_colors_normalized = cluster_colors_list
 
-            # Use provided cmap
             colormap = plt.cm.get_cmap(cmap) if isinstance(cmap, str) else cmap
 
             nx.draw_networkx_nodes(
@@ -252,13 +228,10 @@ class ClusterPlotter:
             filename: Name of the output file
             figsize: Figure size (width, height)
         """
-        # Get the Fiedler vector (this will compute it if not already computed)
         fiedler_vec = self.cluster_machine.fiedler_vector
 
-        # Create a figure
         fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        # Plot sorted Fiedler vector values
         sorted_values = np.sort(fiedler_vec)
         ax.plot(sorted_values, "b-", linewidth=1.5)
         ax.axhline(y=0, color="r", linestyle="--", alpha=0.5, linewidth=1)
@@ -293,14 +266,11 @@ class ClusterPlotter:
             figsize: Figure size (width, height)
             max_nodes: Maximum number of nodes to plot (for large graphs)
         """
-        # Get the Fiedler vector
         fiedler_vec = self.cluster_machine.fiedler_vector
 
-        # Convert sparse matrix to NetworkX graph
         graph_matrix = self.cluster_machine.graph
         G = nx.from_scipy_sparse_array(graph_matrix)
 
-        # Optionally sample nodes for large graphs
         if G.number_of_nodes() > max_nodes:
             self.logger.warning(
                 f"Graph has {G.number_of_nodes()} nodes, sampling {max_nodes} nodes for visualization"
@@ -341,14 +311,10 @@ class ClusterPlotter:
             )
             pos = nx.spring_layout(G, k=1, iterations=50)
 
-        # Create the plot
         plt.figure(figsize=figsize)
 
-        # Draw edges first
         nx.draw_networkx_edges(G, pos, alpha=0.2, width=1.5, edge_color="gray")
 
-        # Draw nodes colored by Fiedler vector values
-        # Use a diverging colormap (e.g., RdBu_r) to show positive/negative values
         nodes = nx.draw_networkx_nodes(
             G,
             pos,
@@ -360,10 +326,8 @@ class ClusterPlotter:
             vmax=max(fiedler_values),
         )
 
-        # Add colorbar
         plt.colorbar(nodes, label="Fiedler Vector Value", shrink=0.8)
 
-        # Optionally add labels for small graphs
         if G.number_of_nodes() <= 50:
             nx.draw_networkx_labels(G, pos, font_size=8)
 
@@ -372,3 +336,136 @@ class ClusterPlotter:
         plt.tight_layout()
         plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
         plt.close()
+
+    def plot_spectral_embedding(
+        self,
+        output_dir: Path,
+        filename: str = "spectral_embedding.png",
+        figsize: tuple[int, int] = (10, 8),
+        custom_colors: dict[int, str] | list[str] | None = None,
+        cmap: str | None = None,
+    ):
+        """
+        Plot the spectral embedding in 2D space using the 2nd and 3rd eigenvectors.
+
+        This visualization shows how points become distinct in the reduced space.
+        The plot uses:
+        - X-axis: 2nd Eigenvector (Fiedler vector)
+        - Y-axis: 3rd Eigenvector
+
+        Points are colored according to their assigned cluster labels.
+
+        Args:
+            output_dir: Directory where the plot will be saved
+            filename: Name of the output file
+            figsize: Figure size (width, height)
+            custom_colors: Custom colors for clusters. Can be:
+                - dict mapping cluster ID to color (e.g., {0: 'red', 1: 'blue'})
+                - list of colors (one per cluster in order)
+            cmap: Colormap name to use (e.g., 'tab10', 'Set3', 'viridis').
+                  If custom_colors is provided, this is ignored.
+        """
+        if self.cluster_machine.latest_clusters is None:
+            self.logger.error(
+                "Before plotting, you need to cluster the data first: run .cluster() first"
+            )
+            return
+
+        if self.cluster_machine.eigenvectors is None:
+            self.cluster_machine.compute_eigenvalues()
+
+        eigenvectors = self.cluster_machine.eigenvectors
+        clusters = self.cluster_machine.latest_clusters
+
+        if eigenvectors.shape[1] < 3:
+            self.logger.warning(
+                f"Only {eigenvectors.shape[1]} eigenvectors available, need at least 3. "
+                "Computing more eigenvalues..."
+            )
+            k_needed = max(3, self.cluster_machine.k)
+            self.cluster_machine.compute_eigenvalues(k=k_needed)
+            eigenvectors = self.cluster_machine.eigenvectors
+
+        if eigenvectors.shape[1] < 3:
+            self.logger.error(
+                "Cannot plot spectral embedding: need at least 3 eigenvectors"
+            )
+            return
+
+        eigenvector_2 = eigenvectors[:, 1]
+        eigenvector_3 = eigenvectors[:, 2]
+
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+        unique_clusters = np.unique(clusters)
+
+        cluster_id_to_color = {}
+        if custom_colors is None:
+            # Use default color palette
+            palette_dict = get_palette_dict(len(unique_clusters))
+            for cluster_id in unique_clusters:
+                cluster_id_to_color[int(cluster_id)] = palette_dict.get(
+                    int(cluster_id), "gray"
+                )
+        elif isinstance(custom_colors, dict):
+            # Map cluster IDs to colors
+            for cluster_id in unique_clusters:
+                cluster_id_to_color[int(cluster_id)] = custom_colors.get(
+                    int(cluster_id), "gray"
+                )
+        elif isinstance(custom_colors, list):
+            # List of colors, one per cluster
+            cluster_id_to_index = {
+                int(cid): idx for idx, cid in enumerate(unique_clusters)
+            }
+            for cluster_id in unique_clusters:
+                idx = cluster_id_to_index[int(cluster_id)]
+                cluster_id_to_color[int(cluster_id)] = (
+                    custom_colors[idx] if idx < len(custom_colors) else "gray"
+                )
+        else:
+            # Fallback to default
+            palette_dict = get_palette_dict(len(unique_clusters))
+            for cluster_id in unique_clusters:
+                cluster_id_to_color[int(cluster_id)] = palette_dict.get(
+                    int(cluster_id), "gray"
+                )
+
+        if cmap is not None and custom_colors is None:
+            scatter = ax.scatter(
+                eigenvector_2,
+                eigenvector_3,
+                c=clusters,
+                cmap=cmap,
+                alpha=0.6,
+                s=50,
+                edgecolors="black",
+                linewidths=0.5,
+            )
+            plt.colorbar(scatter, ax=ax, label="Cluster ID")
+        else:
+            for cluster_id in unique_clusters:
+                mask = clusters == cluster_id
+                color = cluster_id_to_color.get(int(cluster_id), "gray")
+                ax.scatter(
+                    eigenvector_2[mask],
+                    eigenvector_3[mask],
+                    c=color,
+                    label=f"Cluster {int(cluster_id)}",
+                    alpha=0.6,
+                    s=50,
+                    edgecolors="black",
+                    linewidths=0.5,
+                )
+            ax.legend(loc="best", fontsize=8)
+
+        ax.set_xlabel("2nd Eigenvector (Fiedler Vector)", fontsize=12)
+        ax.set_ylabel("3rd Eigenvector", fontsize=12)
+        ax.set_title("Spectral Embedding (Eigenvector 2 vs 3)", fontsize=14)
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+        plt.close()
+
+        self.logger.info(f"Spectral embedding plot saved to {output_dir / filename}")

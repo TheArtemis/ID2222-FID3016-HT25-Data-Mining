@@ -52,3 +52,31 @@ class GapFinder:
     def log_gaps(self):
         for i, gap in enumerate(self.gaps):
             self.logger.debug(f"Gap between λ_{i + 1} and λ_{i + 2}: {gap:.4f}")
+
+    def analyze_modularity(self, min_k: int = 2, max_k: int = 10) -> dict[int, float]:
+        """
+        Calculate modularity scores for different values of k (from min_k to max_k).
+        
+        This function clusters the graph for each k value and computes the modularity
+        score to help corroborate eigengap findings.
+        
+        Args:
+            min_k: Minimum number of clusters to test (default: 2)
+            max_k: Maximum number of clusters to test (default: 10)
+        
+        Returns:
+            Dictionary mapping k values to their modularity scores
+        """
+        modularity_scores: dict[int, float] = {}
+        
+        self.logger.info(f"Analyzing modularity for k={min_k} to k={max_k}")
+        
+        for k in range(min_k, max_k + 1):
+            temp_machine = ClusterMachine(self.graph, k=k)
+            clusters = temp_machine.cluster()
+            Q = ClusterMachine.calculate_modularity(self.graph, clusters)
+            modularity_scores[k] = Q
+            
+            self.logger.info(f"k={k}: Modularity Q = {Q:.6f}")
+        
+        return modularity_scores
