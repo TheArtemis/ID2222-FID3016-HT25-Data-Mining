@@ -228,4 +228,3 @@ dumps/*.zip
 !/miner/
 !/miner/core/
 !/miner/core/jabeja/
-!/miner/core/jabeja/**
