@@ -1,0 +1,49 @@
+% Very simple template for lab reports. Most common packages are already included.
+\documentclass[a4paper, 11pt]{article}
+\usepackage[utf8]{inputenc} % Change according to your file encoding
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{float} % provides [H] placement to pin floats
+\usepackage{placeins} % provides \FloatBarrier to prevent floats from passing barriers
+\usepackage{booktabs} % for professional-looking tables
+\usepackage{titlesec} % for customizing section headings
+
+% Customize section spacing for better visual separation
+\titlespacing*{\section}{0pt}{12pt plus 4pt minus 2pt}{8pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{10pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+\titlespacing*{\subsubsection}{0pt}{8pt plus 4pt minus 2pt}{4pt plus 2pt minus 2pt}
+
+%opening
+\title{Report 4: k-way graph partitioning using JaBeJa}
+\author{Group 150: Lorenzo Deflorian, Riccardo Fragale}
+\date{\today{}}
+
+\begin{document}
+
+\maketitle
+
+
+\section{Introduction}
+This assignment aims to understand distributed graph partitioning using gossip-based peer-to-peer techniques;
+focusing in particular on the strategy suggested in the following paper\footnote{\url{https://publicatio.bibl.u-szeged.hu/5295/1/taas15.pdf}}.
+We were given the skeleton of the algorithm and we needed to implement a couple of very important features
+and then doing some tests and experimenting possible improvements.
+
+\section{Task 1}
+This first task was related to the initial implementation of the JaBeJa class.
+We were asked to complete the implementation of the methods \textbf{sampleAndSwap(...) } and 
+\textbf{findPartner(...)}.
+\section{Task 2}
+
+
+
+\section{Task 3}
+
+
+
+\section{Conclusion}
+
+
+\end{document}

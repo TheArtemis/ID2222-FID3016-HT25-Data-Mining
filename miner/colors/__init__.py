@@ -21,10 +21,10 @@ EXTENDED_PALETTE = DEFAULT_PALETTE + [
 def get_palette(num_colors: int) -> list[str]:
     """
     Get color palette for a given number of colors.
-    
+
     Args:
         num_colors: Number of colors needed
-        
+
     Returns:
         List of color hex codes
     """
@@ -41,13 +41,12 @@ def get_palette(num_colors: int) -> list[str]:
 def get_palette_dict(num_colors: int) -> dict[int, str]:
     """
     Get color dictionary mapping indices to colors.
-    
+
     Args:
         num_colors: Number of colors needed
-        
+
     Returns:
         Dictionary mapping index (0, 1, 2, ...) to color hex code
     """
     colors = get_palette(num_colors)
     return {i: colors[i] for i in range(num_colors)}
-
