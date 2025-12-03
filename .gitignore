@@ -220,3 +220,12 @@ data/*
 
 # Dumps
 dumps/*.zip
+
+!jabeja
+
+# Ensure the `miner/core/jabeja` folder is not ignored.
+# Negations must include parent directories if they are matched by any ignore pattern.
+!/miner/
+!/miner/core/
+!/miner/core/jabeja/
+!/miner/core/jabeja/**
