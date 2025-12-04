@@ -30,7 +30,7 @@ public class Jabeja {
 
 
   //Separate annealing mode selection
-  boolean useOriginalSimulatedAnnealing = true;
+  boolean useOriginalSimulatedAnnealing = false;
 
 
   //-------------------------------------------------------------------
