@@ -95,7 +95,7 @@ public class Jabeja {
         if (T == MIN_T) {
             reset_rounds++;
             if (reset_rounds >= 400) {
-                T = 1; 
+                T = 2; 
                 // T = 2 REHEATING
                 reset_rounds = 0;
             }

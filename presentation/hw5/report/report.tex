@@ -33,17 +33,77 @@ and then doing some tests and experimenting possible improvements.
 
 \section{Task 1}
 This first task was related to the initial implementation of the JaBeJa class.
+The algorithm provides a smart and decentralized solution to partition large graphs by randomly assigning classes (colors)
+to the nodes and computing the local energy between nodes, their connections and an assigned random subset of ndoes.
+The local energy corresponds to the entropy between the connection of a ndoe and its partners (connected node and subset).
+Therefore, the goal of the algorithm is to reduce the entropy in order to define the best partitioning into clusters.
+To reduce it, in each round of the algorithm the energy of each node is compared to their partners by means of computing 
+their energy with its current color and when switching colors with the presented partner.
+If the energy between the node and partner reduces when they switch colors, it means that a better balance
+has been found and the node and the partner should swap color.
 We were asked to complete the implementation of the methods \textbf{sampleAndSwap(...) } and 
 \textbf{findPartner(...)}.
-\section{Task 2}
+
+\subsection{Implementation Details}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/swapPartner.png}
+    \caption{Partner swapping mechanism in JaBeJa algorithm}
+    \label{fig:swapPartner}
+\end{figure}
+
+The first part computes the degrees and the energy with and without a swap for the node with all its partners;
+then using annealing (or not) we compute the acceptance probability if needed and 
+we assign the bestPartner to swap with for a node.
+Annealing is a concept related especially for the second and third task of this homework.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/sampleAndSwap.png}
+    \caption{Our sample and swap implementation}
+    \label{fig:sampleAndSwap}
+\end{figure}
+The function sampleAndSwap selects a candidate partner for a given node using the configured node-selection policy (LOCAL, RANDOM, or HYBRID),
+by sampling neighbors first and falling back to a global sample.
+It calls findPartner on the sampled nodes to evaluate swap utility and chooses the best partner if one improves or is probabilistically accepted.
+When a partner is found, sampleAndSwap swaps the two nodes' colors and increments the swap counter, applying the change immediately to the graph.
 
 
 
-\section{Task 3}
+\section{Task 2 and Task 3}
+The danger of the previous implementation is that our algorithm is non-deterministic and we might end up
+into a local minimum where we find a good solution but not the optimal one.
+In order to try to solve this issue the second task required us to implement a linear simulated annealing technique 
+that decreases the temperature over time, allowing the algorithm to escape local minima by accepting worse solutions with decreasing probability as iterations progress\footnote{\url{http://katrinaeg.com/simulated-annealing.html}}.
+We were also asked to experiment a bit with all the parameters and to understand that we are improving our solutions.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/saCoolDown.png}
+    \caption{saCoolDown}
+    \label{fig:saCoolDown}
+\end{figure}
 
+The boolean originalSimulatedAnnealing tells us whether we are using the linear annealing or the exponential one (essential for task 3).
+That's why the code above is basically divided into two different "sections".
+Task 3 asked us also to define our acceptance probability function, that is computed inside the findPartner function whose code is inside \ref{fig:swapPartner}.
+We are calculating the acceptance probability as
+\begin{verbatim}
+    double acceptance = Math.exp((newU-oldU)/T);
+\end{verbatim}
+This probability gives to the algorithm a sort of selectivity when accepting a swap 
+and defines in a way the speed through which the algorithm converges to a good solution.
+
+I will paste below some pictures of the tests done with the different configurations of task 1, 2 and 3.
 
 \section{Conclusion}
+This laboratory let us try and test a very useful algorithm for graph partitioning.
+It was very fun and useful at the same to see how performances were changing when working on the 
+variables and on the techniques to better apply Ja-Be-Ja.
+In a way it was a sort of conclusion of the course and we would have liked to completely implement 
+the algorithm on our own instead of having to use the original skeleton.
+
 
 
 \end{document}
