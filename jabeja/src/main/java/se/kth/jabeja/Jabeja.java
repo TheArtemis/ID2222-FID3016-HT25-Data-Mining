@@ -30,7 +30,7 @@ public class Jabeja {
 
 
   //Separate annealing mode selection
-  boolean useOriginalSimulatedAnnealing = false;
+  boolean useOriginalSimulatedAnnealing = true;
 
 
   //-------------------------------------------------------------------
@@ -78,9 +78,9 @@ public class Jabeja {
     if(useOriginalSimulatedAnnealing)
     {
       T = T - config.getDelta();
-        if (T < 1) 
+    if (T < 1)
         {
-          T = 1;
+      T = 1;
         }
     }
     else

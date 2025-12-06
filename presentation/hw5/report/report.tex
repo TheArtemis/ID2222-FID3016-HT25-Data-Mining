@@ -97,6 +97,76 @@ and defines in a way the speed through which the algorithm converges to a good s
 
 I will paste below some pictures of the tests done with the different configurations of task 1, 2 and 3.
 
+\section{Test}
+We worked on the following 3 graphs:
+\begin{itemize}
+    \item 3elt
+    \item add20
+    \item facebook
+\end{itemize}
+First of all we realized that the HYBRID selection policy is by far the best with respect to 
+RANDOM and LOCAL. In particular, since in local there is a reduced knowledge of the graph for a single node,
+the time it needs to converge is a bit more so maybe increasing the number of rounds would lead to better results.
+The following three results are related to a test with 1000 rounds, delta = 0.003 and linear annealing 
+(all three for the Facebook graph). 
+\begin{verbatim}
+round: 999,edge cut: 180264,swaps: 20621248,migrations: 46805 LOCAL
+round: 999,edge cut: 122756,swaps: 17736954,migrations: 47840 RANDOM
+round: 999,edge cut: 118087,swaps: 21208716,migrations: 47731 HYBRID
+\end{verbatim}
+
+A second parameter we tested is the influence of \textit{delta}; in particular it is
+by default set to 0.003; we tried also different values and we realized that the best results 
+are obtained with a lower delta, such as 0.01. This was proved with annealing and with RANDOM selection policy.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/3elt_delta0.01.png}
+    \caption{Delta 0.01 on 3elt graph}
+    \label{fig:delta0_01}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/3elt_delta0.003.png}
+    \caption{Delta 0.003 on 3elt graph}
+    \label{fig:delta0_003}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/3elt_delta0.001.png}
+    \caption{Delta 0.001 on 3elt graph}
+    \label{fig:delta0_001}
+\end{figure}
+
+As \ref{fig:delta0_001} shows we are obtaining a better partitioning in terms of edge-cuts 
+but the number of swaps has not reached a plateau; this implies that we could have gone on with a higher number of rounds.
+
+A third aspect is related to the influence of exponential annealing; 
+we can show that once the parameter T reaches its final value (that is, no more bad swaps are allowed), 
+Ja-Be-Ja converges to an edge cut rapidly, and the edge cut does not change over time. 
+For example, if T is 2 and delta is 0.01, then after 200 rounds, the temperature will cool down to 1, and no more bad-swaps will be accepted.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/add20_T2_delta0_01.png}
+    \caption{Delta 0.01 T=2.0 on add20 graph}
+    \label{fig:T2_delta001}
+\end{figure}
+
+From the figure \ref{fig:T2_delta001} it is not very clear but from the log 
+it is quite significant that exacty after 200 rounds there are no swaps happening
+even though from the graph it seems that swaps stops after 100 rounds.
+It is clearly a limit of this algorithm as we are not improving from a certain point onwards.
+
+Even by adding a reheat after 400 rounds we weren't able to find any major improvement.
+
+
+Last, but not the last we tried to analyze the influence of changing tha acceptance probably 
+using a different one with respect to the one provided in the skeleton of jabeja.
+
+
 \section{Conclusion}
 This laboratory let us try and test a very useful algorithm for graph partitioning.
 It was very fun and useful at the same to see how performances were changing when working on the 
