@@ -160,11 +160,33 @@ it is quite significant that exacty after 200 rounds there are no swaps happenin
 even though from the graph it seems that swaps stops after 100 rounds.
 It is clearly a limit of this algorithm as we are not improving from a certain point onwards.
 
-Even by adding a reheat after 400 rounds we weren't able to find any major improvement.
+Even by adding a reheat to T = 2 after 400 rounds we weren't able to find any major improvement.
+We found a better partitioning by increasing the default initial temperature from 2 to 3
+which, combined with the reheating led us to a slightly lower number 
+of edge cuts after 1000 rounds.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/T3_add20.png}
+    \caption{Starting T=3 on add20 graph}
+    \label{fig:T3_delta001}
+\end{figure}
 
 Last, but not the last we tried to analyze the influence of changing tha acceptance probably 
 using a different one with respect to the one provided in the skeleton of jabeja.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/exponential3000rounds.png}
+    \caption{Exponential acceptance}
+    \label{fig:exp_acceptance}
+\end{figure}
+
+As \ref{fig:exp_acceptance} shows we converge to a good result way slower (and that's why we have 
+3000 rounds) but in the end we obtain a result that is slightly better 
+with respect to the previous cases.
+
+
 
 
 \section{Conclusion}
